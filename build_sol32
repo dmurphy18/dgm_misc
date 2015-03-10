@@ -542,7 +542,7 @@ _install_build_salt() {
     ## unzip ${HERE}/salt/dist/salt-${SALT_VER}.solaris-2_10-$ARCH_${BYTEWIDTH}.zip
     unzip ${HERE}/salt/dist/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH}.zip || {
         _error "$0:$FUNCNAME failure installing salt sdist, bdist or bdist_esky, retcode '${$?}'";
-#    }
+    }
 }
 
 _change_run_paths() {
