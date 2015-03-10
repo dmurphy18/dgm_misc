@@ -103,7 +103,11 @@ _create_patch_files() {
 _install_build_python() {
     _display "$0:$FUNCNAME installing and building python ${PYTHON_VER}"
 
-    [[ -d "${HERE}/Python-${PYTHON_VER}" ]] && { rm -fR "${HERE}/Python-${PYTHON_VER}"; }
+    [[ -d "${HERE}/Python-${PYTHON_VER}" ]] && {
+        rm -fR "${HERE}/Python-${PYTHON_VER}";
+        rm -fR /opt/local/lib/python2.7;
+    }
+
     curl "https://www.python.org/ftp/python/${PYTHON_VER}/Python-${PYTHON_VER}.tgz" | gzcat - | tar -xvf - || {
         _error "$0:$FUNCNAME failed to download and expand python version ${PYTHON_VER}, retcode '${$?}'";
     }
@@ -138,7 +142,7 @@ _install_pip() {
     cd ${HERE}
     _display "$0:$FUNCNAME installing pip"
 
-    curl https://bootstrap.pypa.io/get-pip.py | python - || {
+    curl -k https://bootstrap.pypa.io/get-pip.py | python - || {
         _error "$0:$FUNCNAME failed to install python pip, retcode '${$?}'";
     }
 }
@@ -226,8 +230,8 @@ _update_crle() {
 }
 
 _install_build_libgit2() {
-    # Clone libgit2 from GitHub, checkout the v0.21.2 branch.  v0.21.1 and v0.21.2
-    # are the only versions that work with pygit2 0.21.4
+    # Clone libgit2 from GitHub, checkout the v0.21.2 branch.
+    # v0.21.1 and v0.21.2 are the only versions that work with pygit2 0.21.4
 
     _display "$0:$FUNCNAME installing  and building libgit2"
 
@@ -246,7 +250,7 @@ _install_build_libgit2() {
     mkdir build && cd build
 
     if [[ ${ARCH} = ${ARCH_x86} ]];then
-        cmake .. -DCMAKE_INSTALL_PREFIX=/opt/local -DCMAKE_C_COMPILER=/opt/csw/bin/gcc  2>&1 | tee -a $LOGGING || {
+        cmake .. -DCMAKE_INSTALL_PREFIX=/opt/local -DCMAKE_C_COMPILER=/opt/csw/bin/gcc -DCMAKE_LIBRARY_PATH=/opt/csw/lib 2>&1 | tee -a $LOGGING || {
             _error "$0:$FUNCNAME failed to build libgit2 for arch ${ARCH}, retcode '${$?}'";
         }
 
@@ -268,7 +272,6 @@ _install_build_libgit2() {
     else
         _error "$0:$FUNCNAME unsupported platform"
     fi
-
 }
 
 _install_pygit2() {
@@ -311,7 +314,7 @@ _install_build_patchelf() {
 
     gtar -zxvf "patchelf-${PATCHELF_VER}.tar.gz"
     cd "patchelf-${PATCHELF_VER}"
-    ./configure 2>&1 | tee -a $LOGGING
+    ./configure --prefix=/opt/local 2>&1 | tee -a $LOGGING
     gmake || {
         _error "$0:$FUNCNAME failed to build patchelf-${PATCHELF_VER}, retcode '$?'";
     }
@@ -367,6 +370,11 @@ _install_bbfreeze_esky() {
         _error "$0:$FUNCNAME failed to pip install bbfreeze or esky, retcode '${$?}'";
     }
 
+    # need to allow for updated versions of pyzmq other than default
+    ESKY_VER=$( pip show esky | grep -w Version | cut -d ' ' -f 2 )
+    export ESKY_VER
+    _display "$0:$FUNCNAME updated esky version to '${ESKY_VER}'"
+
     ## COMPILE="gcc -fno-strict-aliasing -O2 -pipe -O2 -DHAVE_DB_185_H -I/usr/include \
     COMPILE="gcc -m32 -fno-strict-aliasing -O2 -pipe -O2 -DHAVE_DB_185_H -I/usr/include \
             -I/opt/local/include -I/opt/csw/include -I/opt/csw/include/db4 \
@@ -374,6 +382,10 @@ _install_bbfreeze_esky() {
             -DHAVE_DB_185_H -I/usr/include \
             -I/opt/csw/include/gettext -I/opt/csw/include/ncurses -fPIC \
             -I/opt/local/include/python2.7 -static-libgcc"
+
+    [[ -d "bbfreeze-loader-${BBFREEZE_LDR_VER}" ]] && {
+        rm -fR "bbfreeze-loader-${BBFREEZE_LDR_VER}";
+    }
 
     curl -kO "https://pypi.python.org/packages/source/b/bbfreeze-loader/bbfreeze-loader-${BBFREEZE_LDR_VER}.zip" || {
         _error "$0:$FUNCNAME failed to download 'bbfreeze-loader-${BBFREEZE_LDR_VER}.zip', retcode '${$?}'";
@@ -429,6 +441,11 @@ _install_pyzmq() {
     pip install --egg pyzmq || {
         _error "$0:$FUNCNAME failed to pip install pyzmq, retcode '${$?}'";
     }
+
+    # need to allow for updated versions of pyzmq other than default
+    PYZMQ_VER=$( pip show pyzmq | grep -w Version | cut -d ' ' -f 2 )
+    export PYZMQ_VER
+    _display "$0:$FUNCNAME updated pyzmq version to '${PYZMQ_VER}'"
 }
 
 _install_crypto() {
@@ -477,6 +494,7 @@ _install_build_salt() {
     export LDFLAGS=
     export PKG_CONFIG_PATH='/opt/csw/lib/pkgconfig:/opt/local/lib/pkgconfig'
 
+    [[ -d salt ]] && { rm -fR salt; }
     git clone https://github.com/saltstack/salt -b v${SALT_VER} || {
         _error "$0:$FUNCNAME failed to git clone salt version ${SALT_VER}, retcode '${$?}'";
     }
@@ -524,7 +542,7 @@ _install_build_salt() {
     ## unzip ${HERE}/salt/dist/salt-${SALT_VER}.solaris-2_10-$ARCH_${BYTEWIDTH}.zip
     unzip ${HERE}/salt/dist/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH}.zip || {
         _error "$0:$FUNCNAME failure installing salt sdist, bdist or bdist_esky, retcode '${$?}'";
-    }
+#    }
 }
 
 _change_run_paths() {
@@ -687,12 +705,18 @@ PYTHON_VER='2.7.8'
 SODIUM_VER='1.0.1'
 PATCHELF_VER='0.8'
 ZMQ_VER='4.0.5'
-PYZMQ_VER='14.4.1'
+
 BBFREEZE_LDR_VER='1.1.0'
 ESKY_VER='0.9.8'
 LIBGIT2_VER='0.21.2'
 PYGIT2_COMPAT_VER='0.21.4'  #pygit2 is picky about version compatability with libgit2
 PYCRYPTO_VER='2.6.1'
+
+# varible dependency versions, e.g. pyzmq
+# subject to change when installed usually by --egg
+PYZMQ_VER='14.4.1'
+## PYZMQ_VER='14.5.0'
+
 
 
 ## SALT_VER='2014.7.1'
