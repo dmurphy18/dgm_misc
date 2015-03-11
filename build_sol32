@@ -48,6 +48,15 @@ _usage() {
 
 ## work functions
 
+_clean_out_prev_bld() {
+    cd ${HERE}
+    _display "$0:$FUNCNAME clean out previous build products"
+
+    rm -fR /opt/local/lib/python2.7
+    rm -fR ${HERE}
+    mkdir ${HERE}
+}
+
 _install_pkgutil() {
     cd ${HERE}
     _display "$0:$FUNCNAME installing base dependencies with pkgutil"
@@ -105,7 +114,6 @@ _install_build_python() {
 
     [[ -d "${HERE}/Python-${PYTHON_VER}" ]] && {
         rm -fR "${HERE}/Python-${PYTHON_VER}";
-        rm -fR /opt/local/lib/python2.7;
     }
 
     curl "https://www.python.org/ftp/python/${PYTHON_VER}/Python-${PYTHON_VER}.tgz" | gzcat - | tar -xvf - || {
@@ -495,9 +503,11 @@ _install_build_salt() {
     export PKG_CONFIG_PATH='/opt/csw/lib/pkgconfig:/opt/local/lib/pkgconfig'
 
     [[ -d salt ]] && { rm -fR salt; }
-    git clone https://github.com/saltstack/salt -b v${SALT_VER} || {
-        _error "$0:$FUNCNAME failed to git clone salt version ${SALT_VER}, retcode '${$?}'";
-    }
+#    git clone https://github.com/saltstack/salt -b v${SALT_VER} || {
+#        _error "$0:$FUNCNAME failed to git clone salt version ${SALT_VER}, retcode '${$?}'";
+#    }
+#
+    cp -R /hold_src/salt ${HERE}
 
     if [[ ! -d "${HERE}/salt/pkg/smartos/esky" ]];then
         _error "$0:$FUNCNAME no directory '${HERE}/salt/pkg/smartos/esky' when cloned salt version ${SALT_VER}, retcode '${_ret}'"
@@ -748,8 +758,6 @@ PKG_CONFIG_PATH=
 VERBOSE=1
 LOGGING=
 
-log_file_format="${HERE}/$0.%Y%m%d%H%M%S.log"
-log_file="`date \"+${log_file_format}\"`"
 
 PYTHON_SETUP_PATCH_FILE="${HERE}/setup.patch"
 REQUIREMENTS_PATCH_FILE="${HERE}/requirements.patch"
@@ -786,6 +794,11 @@ if [[ ! -d ${HERE} ]];then
     mkdir -p ${HERE}
 fi
 cd ${HERE}
+
+_clean_out_prev_bld
+
+log_file_format="${HERE}/$0-${OSRELEASE}-${ARCH}.%Y%m%d%H%M%S.log"
+log_file="`date \"+${log_file_format}\"`"
 
 if [[ ${VERBOSE} -ne 0 ]];then
     LOGGING="${log_file}"
