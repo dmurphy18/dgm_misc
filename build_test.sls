@@ -15,7 +15,7 @@
 
 run_build_test:
   cmd.run:
-    - name: /root/tools/bldscript
+    - name: /build_product/bldscript
     - stateful: True
     - output_loglevel: debug
     - shell: /bin/bash
@@ -32,7 +32,7 @@ run_build_test:
 
 sync_build_test:
   file.managed:
-    - name: /root/tools/bldscript
+    - name: /build_product/bldscript
     - source: salt://tools/bldscript
     - user: root
     - group: root
