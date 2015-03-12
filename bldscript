@@ -1,0 +1,13 @@
+#!/bin/bash
+
+cat <<@EOF > "./build-test.log"
+The test log for the build script bldscript
+
+The laxy dog jumped the brown cow
+@EOF
+
+## last lines
+
+echo ""     ## this echos an empty line and is required
+echo "changed=yes comment='test bldscript output' result='good'  log='build-test.log'"
+
