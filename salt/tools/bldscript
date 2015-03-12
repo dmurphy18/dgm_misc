@@ -1,0 +1,18 @@
+#!/bin/bash
+
+cat <<@EOF > "./build-test.log"
+The test log for the build script bldscript
+
+The laxy dog jumped the brown cow
+@EOF
+
+
+## instead we are going to fire and event for stating completion with grains and
+# a data dictionary
+salt-call event.send '/salt-internal/build_server/build_result' '{ "data" : { "changed" : "yes", "comment" : "test bldscript output", "result" : "good", "log" : "build-test.log" } }' with_grains=True
+
+## last lines - still need this even if fire event
+## echo "changed=yes comment='test bldscript output' result='good' log='build-test.log'"
+echo ""     ## this echos an empty line and is required
+echo "result='good' log='build-test.log'"
+

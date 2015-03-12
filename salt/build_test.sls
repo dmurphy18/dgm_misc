@@ -16,12 +16,12 @@
 run_build_test:
   cmd.run:
     - name: /build_product/bldscript
-    - stateful: True
     - output_loglevel: debug
     - shell: /bin/bash
     - cwd:  /build_product
     - require:
       - file: sync_build_test
+#    - stateful: True
 #    - watch:
 #      - file: bldscript
 
