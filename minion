@@ -588,3 +588,21 @@ pillar_roots:
 ############################################
 # Location of the repository cache file on the master:
 #win_repo_cachefile: 'salt://win/repo/winrepo.p'
+
+
+######                 MYSQL settings ######
+############################################
+# configuration settings for mysql on the minion
+#
+mysql.host: 'localhost'
+mysql.port: 3306
+mysql.user: 'root'
+mysql.pass: 'dogkat2015'
+mysql.charset: 'utf8'
+
+## Note: if named db not found that commands fail: e.g. salt \* mysql.db_list
+## pre-declaring the socket also had issues too, not too robust error handling
+## mysql.db:   'buildresults'
+## mysql.unix_socket: '/tmp/mysql.sock'
+
+
