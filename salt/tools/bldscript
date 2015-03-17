@@ -9,10 +9,11 @@ The laxy dog jumped the brown cow
 
 ## instead we are going to fire and event for stating completion with grains and
 # a data dictionary
-salt-call event.send '/salt-internal/build_server/build_result' '{ "data" : { "changed" : "yes", "comment" : "test bldscript output", "result" : "good", "log" : "build-test.log" } }' with_grains=True
+salt-call event.send '/salt-internal/build_server/build_result' changed=no comment="test bldscript output"  status=good log="build-test.log" bld_product="platform_product.bpp" with_grains=True
 
 ## last lines - still need this even if fire event
 ## echo "changed=yes comment='test bldscript output' result='good' log='build-test.log'"
 echo ""     ## this echos an empty line and is required
-echo "result='good' log='build-test.log'"
+## echo "status='good' log='build-test.log'"
+echo "name=bldscript changed=yes result='True' comment='test bldscript output'"
 
