@@ -1,8 +1,7 @@
-#    - nginx
 
 base:
   lcminion:
-    - mysql
+    - mysql.mysql_db
     - nginx
 
   cent66dgm:

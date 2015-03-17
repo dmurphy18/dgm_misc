@@ -37,4 +37,3 @@ bldmlogs_db_grants:
     - require:
       - mysql_user: bldmlogs_db_user
 
-
