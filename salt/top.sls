@@ -1,7 +1,7 @@
 
 base:
   lcminion:
-    - mysql.mysql_db
+    - sqldb.sql_db
     - nginx
 
   cent66dgm-minion:
