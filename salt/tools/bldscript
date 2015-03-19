@@ -3,40 +3,8 @@
 cat <<@EOF > "./build-test.log"
 The test log for the build script bldscript
 
-The laxy dog jumped the brown cow
+The laxy dog jumped the brown cow and it belched
 @EOF
-
-# define output for exit
-op_changed=no
-op_comment="failures occured"
-op_status="ERRORS"
-op_log="none"
-op_bld_product="none"
-
-error_exit() {
-  ## fire and event for stating completion with grains and a data dictionary
-## salt-call event.send '/salt-internal/build_server/build_result' changed=${op_changed} comment=${op_comment} status=${op_status} log="${op_log}" bld_product="${op_bld_product}" with_grains=True
-
-  ## last lines - still need this even if fire event
-  echo ""     ## this echos an empty line and is required
-  echo "name=${0} changed=${op_changed} result='False' comment='${op_bld_product}'"
-  exit 1
-}
-
-success_exit() {
-  ## fire and event for stating completion with grains and a data dictionary
-  op_status="GOOD"
-  op_comment="test bldscript output"
-  op_log="build-test.log"
-  op_bld_product="platform_product.bpp"
-
-##  salt-call event.send '/salt-internal/build_server/build_result' changed=${op_changed} comment=${op_comment} status=${op_status} log="${op_log}" bld_product="${op_bld_product}" with_grains=True
-
-  ## last lines - still need this even if fire event
-  echo ""     ## this echos an empty line and is required
-  echo "name=${0} changed=${op_changed} result='True' comment='${op_bld_product}'"
-  exit 0
-}
 
 usage() {
   echo ""
@@ -50,17 +18,40 @@ usage() {
   echo ""
 }
 
-trap error_exit SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
-## trap success_exit EXIT
+error_exit() {
+  [[ ${op_status} = "ERRORS" ]] && {
+    ## fire and event for stating completion with grains and a data dictionary
+    salt-call event.send '/salt-internal/build_server/build_result_bad' changed="${op_changed}" comment="${op_comment}" status="${op_status}" log="${op_log}" bld_product="${op_bld_product}" with_grains=True
+
+    ## last lines - still need this even if fire event
+    echo ""     ## this echos an empty line and is required
+    echo "name=${0} changed=${op_changed} result='False' comment='${op_bld_product}'"
+    exit 1
+  }
+}
+
+success_exit() {
+  ## fire and event for stating completion with grains and a data dictionary
+  op_comment="test bldscript output"
+  op_log="build-test.log"
+  op_bld_product="platform_product.bpp"
+
+  salt-call event.send '/salt-internal/build_server/build_result_good' changed="${op_changed}" comment="${op_comment}" status="${op_status}" log="${op_log}" bld_product="${op_bld_product}" with_grains=True
+
+  ## last lines - still need this even if fire event
+  echo ""     ## this echos an empty line and is required
+  echo "name=${0} changed=${op_changed} result='True' comment='${op_bld_product}_resout'"
+  exit 0
+}
 
 # parameter parsing
 
 ## using 'GNU getopt' with support for long keywords, 
 ## requires separate install on OSX and FreeBSD
-TEMP=$(getopt -o vdhlt: --long verbose,debug,help,log:,tag: -n 'bldscript' -- "$@")
-
-eval set -- "${TEMP}"
-
+#TEMP=$(getopt -o vdhlt: --long verbose,debug,help,log:,tag: -n 'bldscript' -- "$@")
+#
+#eval set -- "${TEMP}"
+#
 VERBOSE=false
 DEBUG=false
 USAGE_HELP=false
@@ -79,14 +70,24 @@ while true; do
   esac
 done
 
-[[ ${USAGE_HELP} ]] && {
+## check if want help, display usage and exit
+[[ ${USAGE_HELP} = 'false' ]] || {
   usage
   exit 0
 }
 
-echo "testing bldscript trap handling"
-sleep 10
-echo "done sleeping"
-success_exit
+# define output for exit
+op_changed=no
+op_comment="failures occured"
+op_status="ERRORS"
+op_log="none"
+op_bld_product="none"
 
+trap error_exit SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM EXIT
+
+# echo "testing bldscript trap handling"
+#sleep 10
+# echo "done sleeping"
+op_status="GOOD"
+success_exit
 

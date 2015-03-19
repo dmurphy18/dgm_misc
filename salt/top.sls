@@ -4,5 +4,7 @@ base:
     - sqldb.sql_db
     - nginx
 
-  cent66dgm-minion:
+  'G@roles:buildbox':
+    - match: compound
     - build_test
+
