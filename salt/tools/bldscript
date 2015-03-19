@@ -6,14 +6,87 @@ The test log for the build script bldscript
 The laxy dog jumped the brown cow
 @EOF
 
+# define output for exit
+op_changed=no
+op_comment="failures occured"
+op_status="ERRORS"
+op_log="none"
+op_bld_product="none"
 
-## instead we are going to fire and event for stating completion with grains and
-# a data dictionary
-salt-call event.send '/salt-internal/build_server/build_result' changed=no comment="test bldscript output"  status=good log="build-test.log" bld_product="platform_product.bpp" with_grains=True
+error_exit() {
+  ## fire and event for stating completion with grains and a data dictionary
+## salt-call event.send '/salt-internal/build_server/build_result' changed=${op_changed} comment=${op_comment} status=${op_status} log="${op_log}" bld_product="${op_bld_product}" with_grains=True
 
-## last lines - still need this even if fire event
-## echo "changed=yes comment='test bldscript output' result='good' log='build-test.log'"
-echo ""     ## this echos an empty line and is required
-## echo "status='good' log='build-test.log'"
-echo "name=bldscript changed=yes result='True' comment='test bldscript output'"
+  ## last lines - still need this even if fire event
+  echo ""     ## this echos an empty line and is required
+  echo "name=${0} changed=${op_changed} result='False' comment='${op_bld_product}'"
+  exit 1
+}
+
+success_exit() {
+  ## fire and event for stating completion with grains and a data dictionary
+  op_status="GOOD"
+  op_comment="test bldscript output"
+  op_log="build-test.log"
+  op_bld_product="platform_product.bpp"
+
+##  salt-call event.send '/salt-internal/build_server/build_result' changed=${op_changed} comment=${op_comment} status=${op_status} log="${op_log}" bld_product="${op_bld_product}" with_grains=True
+
+  ## last lines - still need this even if fire event
+  echo ""     ## this echos an empty line and is required
+  echo "name=${0} changed=${op_changed} result='True' comment='${op_bld_product}'"
+  exit 0
+}
+
+usage() {
+  echo ""
+  echo "usage: ${0} [-v|--verbose] [-d|--debug] [-h|--help] [-l|--log <debug>] [-t|--tag <tag>]"
+  echo ""
+  echo "  -v, --verbose   verbose output"
+  echo "  -d, --debug     debug output enabled"
+  echo "  -h, --help      this message"
+  echo "  -l, --log       logging mode"
+  echo "  -t, --tag       build's tag, e.g. 2014.7.2, if unspecified YYYY-MM-DD-HH-MM-SS"
+  echo ""
+}
+
+trap error_exit SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM
+## trap success_exit EXIT
+
+# parameter parsing
+
+## using 'GNU getopt' with support for long keywords, 
+## requires separate install on OSX and FreeBSD
+TEMP=$(getopt -o vdhlt: --long verbose,debug,help,log:,tag: -n 'bldscript' -- "$@")
+
+eval set -- "${TEMP}"
+
+VERBOSE=false
+DEBUG=false
+USAGE_HELP=false
+LOG_MODE='debug'
+RELEASE_TAG=
+
+while true; do
+  case "${1}" in
+    -v | --verbose ) VERBOSE=true; shift ;;
+    -d | --debug )  DEBUG=true; shift ;;
+    -h | --help ) USAGE_HELP=true; shift ;;
+    -l | --log )  LOG_MODE="$2"; shift 2 ;;
+    -t | --tag ) RELEASE_TAG="$2"; shift 2 ;;
+    -- ) shift; break ;;
+    * ) break ;;
+  esac
+done
+
+[[ ${USAGE_HELP} ]] && {
+  usage
+  exit 0
+}
+
+echo "testing bldscript trap handling"
+sleep 10
+echo "done sleeping"
+success_exit
+
 
