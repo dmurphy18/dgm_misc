@@ -1,10 +1,5 @@
 #!/bin/bash
 
-cat <<@EOF > "./build-test.log"
-The test log for the build script bldscript
-
-The laxy dog jumped the brown cow and it belched
-@EOF
 
 usage() {
   echo ""
@@ -32,10 +27,6 @@ error_exit() {
 
 success_exit() {
   ## fire and event for stating completion with grains and a data dictionary
-  op_comment="test bldscript output"
-  op_log="build-test.log"
-  op_bld_product="platform_product.bpp"
-
   salt-call event.send '/salt-internal/build_server/build_result_good' changed="${op_changed}" comment="${op_comment}" status="${op_status}" log="${op_log}" bld_product="${op_bld_product}" with_grains=True
 
   ## last lines - still need this even if fire event
@@ -76,18 +67,37 @@ done
   exit 0
 }
 
+# log and build product names, cp.push needs abs paths
+curr_path=$(pwd)
+op_log="${curr_path}/build-test.log"
+op_bld_product="${curr_path}/platform_product.blt"
+
 # define output for exit
 op_changed=no
 op_comment="failures occured"
 op_status="ERRORS"
-op_log="none"
-op_bld_product="none"
 
 trap error_exit SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM EXIT
+
+cat <<@EOF > "${op_log}"
+The test log for the build script bldscript
+The laxy dog jumped the brown cow and it belched
+@EOF
+
+cat <<@EOF > "${op_bld_product}"
+This si just something signifing that the product was
+built for the platform.
+@EOF
+
 
 # echo "testing bldscript trap handling"
 #sleep 10
 # echo "done sleeping"
 op_status="GOOD"
+op_comment="test bldscript output"
+
+salt-call cp.push "${op_log}"
+salt-call cp.push "${op_bld_product}"
+
 success_exit
 
