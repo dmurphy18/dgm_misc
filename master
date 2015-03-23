@@ -238,10 +238,12 @@
 # Allow minions to push files to the master. This is disabled by default, for
 # security purposes.
 #file_recv: False
+file_recv: True
 
 # Set a hard-limit on the size of the files that can be pushed to the master.
 # It will be interpreted as megabytes. Default: 100
 #file_recv_max_size: 100
+file_recv_max_size: 200
 
 # Signature verification on messages published from the master.
 # This causes the master to cryptographically sign all messages published to its event
@@ -267,7 +269,7 @@
 #runner_dirs: []
 
 # Enable Cython for master side modules:
-#cython_enable: False
+
 
 
 #####      State System settings     #####
@@ -401,7 +403,11 @@ file_roots:
 # "roots" which uses the "file_roots" option.
 #fileserver_backend:
 #  - roots
-#
+
+fileserver_backend:
+  - roots
+  - minion
+
 # To use multiple backends list them in the order they are searched:
 #fileserver_backend:
 #  - git
