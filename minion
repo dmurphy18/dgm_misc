@@ -13,10 +13,9 @@
 
 # Set the location of the salt master server. If the master server cannot be
 # resolved, then the minion will fail to start.
+master: localhost
 ## master: 104.236.251.190
-master: 192.168.122.82
-#master: 192.168.122.83
-id: cent66dgm-minion
+
 
 # If multiple masters are specified in the 'master' setting, the default behavior
 # is to always try to connect to them in the order they are listed. If random_master is
@@ -54,6 +53,7 @@ id: cent66dgm-minion
 # Since salt uses detached ids it is possible to run multiple minions on the
 # same machine but with different ids, this can be useful for salt compute
 # clusters.
+id: lcminion
 
 # Append a domain to a hostname in the event that it does not exist.  This is
 # useful for systems where socket.getfqdn() does not actually result in a
@@ -70,10 +70,6 @@ id: cent66dgm-minion
 #  deployment: datacenter4
 #  cabinet: 13
 #  cab_u: 14-15
-
-grains:
-  roles:
-    - buildbox
 
 # Where cache data goes.
 #cachedir: /var/cache/salt/minion
@@ -433,9 +429,9 @@ file_roots:
 # The Salt pillar is searched for locally if file_client is set to local. If
 # this is the case, and pillar data is defined, then the pillar_roots need to
 # also be configured on the minion:
-#pillar_roots:
-#  base:
-#    - /srv/pillar
+pillar_roots:
+  base:
+    - /srv/pillar
 
 
 ######        Security settings       #####
@@ -488,7 +484,7 @@ file_roots:
 # location. Remote logging works best when configured to use rsyslogd(8) (e.g.:
 # ``file:///dev/log``), with rsyslogd(8) configured for network logging. The URI
 # format is: <file|udp|tcp>://<host|socketpath>:<port-if-required>/<log-facility>
-#log_file: /var/log/salt/minion
+log_file: /var/log/salt/minion
 #log_file: file:///dev/log
 #log_file: udp://loghost:10514
 #
@@ -499,12 +495,14 @@ file_roots:
 # One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'.
 # Default: 'warning'
 #log_level: warning
+log_level: debug
 
 # The level of messages to send to the log file.
 # One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'.
 # If using 'log_granular_levels' this must be set to the highest desired level.
 # Default: 'warning'
 #log_level_logfile:
+log_level_logfile: debug
 
 # The date and time format used in log messages. Allowed date/time formating
 # can be seen here: http://docs.python.org/library/time.html#time.strftime
@@ -592,3 +590,21 @@ file_roots:
 ############################################
 # Location of the repository cache file on the master:
 #win_repo_cachefile: 'salt://win/repo/winrepo.p'
+
+
+######                 MYSQL settings ######
+############################################
+# configuration settings for mysql on the minion
+#
+mysql.host: 'localhost'
+mysql.user: 'saltadmin'
+mysql.pass: 'saltadmin'
+mysql.port: 3306
+mysql.charset: 'utf8'
+
+## Note: if named db not found that commands fail: e.g. salt \* mysql.db_list
+## pre-declaring the socket also had issues too, not too robust error handling
+## mysql.db:   'buildresults'
+## mysql.unix_socket: '/tmp/mysql.sock'
+
+

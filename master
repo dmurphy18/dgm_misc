@@ -630,8 +630,10 @@ log_level: debug
 #log_granular_levels: {}
 
 reactor:
-  - '/salt-internal/build_server/build_result':
-    - /srv/reactor/deploy_build_result.sls
+  - '/salt-internal/build_server/build_result_start':
+    - /srv/reactor/deploy_build_result_start.sls
+  - '/salt-internal/build_server/build_result_finish':
+    - /srv/reactor/deploy_build_result_finish.sls
 
 #####         Node Groups           #####
 ##########################################

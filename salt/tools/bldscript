@@ -16,22 +16,22 @@ usage() {
 error_exit() {
   [[ ${op_status} = "ERRORS" ]] && {
     ## fire and event for stating completion with grains and a data dictionary
-    salt-call event.send '/salt-internal/build_server/build_result_bad' changed="${op_changed}" comment="${op_comment}" status="${op_status}" log="${op_log}" bld_product="${op_bld_product}" with_grains=True
+    salt-call event.send '/salt-internal/build_server/build_result_finish' changed="${op_changed}" comment="${op_comment}" status="${op_status}" log="${op_log}" bld_product="${op_bld_product}" idkey="${op_idkey}" with_grains=True
 
     ## last lines - still need this even if fire event
     echo ""     ## this echos an empty line and is required
-    echo "name=${0} changed=${op_changed} result='False' comment='${op_bld_product}'"
+    echo "name=${0} changed=${op_changed} result='False' comment='${op_bld_product}' idkey='${op_idkey}'"
     exit 1
   }
 }
 
 success_exit() {
   ## fire and event for stating completion with grains and a data dictionary
-  salt-call event.send '/salt-internal/build_server/build_result_good' changed="${op_changed}" comment="${op_comment}" status="${op_status}" log="${op_log}" bld_product="${op_bld_product}" with_grains=True
+  salt-call event.send '/salt-internal/build_server/build_result_finish' changed="${op_changed}" comment="${op_comment}" status="${op_status}" log="${op_log}" bld_product="${op_bld_product}" idkey="${op_idkey}" with_grains=True
 
   ## last lines - still need this even if fire event
   echo ""     ## this echos an empty line and is required
-  echo "name=${0} changed=${op_changed} result='True' comment='${op_bld_product}_resout'"
+  echo "name=${0} changed=${op_changed} result='True' comment='${op_bld_product}' idkey='${op_idkey}'"
   exit 0
 }
 
@@ -79,6 +79,14 @@ op_status="ERRORS"
 
 trap error_exit SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM EXIT
 
+## need an identifier for build start and finish, seconds since epoch is fine
+op_idkey=$(date +%s)
+
+op_status="BUILDING"
+op_comment="executing build script bldscript"
+## fire and event for stating completion with grains and a data dictionary
+salt-call event.send '/salt-internal/build_server/build_result_start' changed="${op_changed}" comment="${op_comment}" status="${op_status}" log="${op_log}" bld_product="${op_bld_product}" idkey="${op_idkey}" with_grains=True
+
 cat <<@EOF > "${op_log}"
 The test log for the build script bldscript
 The laxy dog jumped the brown cow and it belched
@@ -89,6 +97,7 @@ This si just something signifing that the product was
 built for the platform.
 @EOF
 
+sleep 30
 
 # echo "testing bldscript trap handling"
 #sleep 10
