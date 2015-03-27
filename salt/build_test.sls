@@ -76,9 +76,13 @@
 {% set BLDMGR_SCRIPT_USER = " -u " ~ salt['pillar.get']('bldmgr:user') ~ " "  %}
 {% endif %}
 
+# platform build script handling
+{% from "bldmgr/map.jinja" import bldmgr with context %}
+
+
 run_build_test:
   cmd.run:
-    - name: /build_product/bldscript {{ BLDMGR_SCRIPT_VERBOSE }} {{ BLDMGR_SCRIPT_DEBUG }} {{ BLDMGR_SCRIPT_LOG }} {{ BLDMGR_SCRIPT_TAG }} {{ BLDMGR_SCRIPT_SHAHASH }} {{ BLDMGR_SCRIPT_BRANCH }} {{ BLDMGR_SCRIPT_REPO }} {{ BLDMGR_SCRIPT_EREPO }} {{ BLDMGR_SCRIPT_USER }}
+    - name: /build_product/{{ bldmgr.platform_bld_script }} {{ BLDMGR_SCRIPT_VERBOSE }} {{ BLDMGR_SCRIPT_DEBUG }} {{ BLDMGR_SCRIPT_LOG }} {{ BLDMGR_SCRIPT_TAG }} {{ BLDMGR_SCRIPT_SHAHASH }} {{ BLDMGR_SCRIPT_BRANCH }} {{ BLDMGR_SCRIPT_REPO }} {{ BLDMGR_SCRIPT_EREPO }} {{ BLDMGR_SCRIPT_USER }}
     - output_loglevel: debug
     - shell: /bin/bash
     - cwd:  /build_product
@@ -95,8 +99,8 @@ run_build_test:
 
 sync_build_test:
   file.managed:
-    - name: /build_product/bldscript
-    - source: salt://tools/bldscript
+    - name: /build_product/{{ bldmgr.platform_bld_script }}
+    - source: salt://tools/{{ bldmgr.platform_bld_script }}
     - user: root
     - group: root
     - mode: 755

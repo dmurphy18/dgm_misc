@@ -1,4 +1,6 @@
 
 bldmgr:
-  bldmgr_ver: 1
+  lookup:
+    bldmgr_ver: 1
+    bscript: platform_bld_script
 

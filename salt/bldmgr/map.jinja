@@ -1,0 +1,8 @@
+{% set bldmgr = salt['grains.filter_by']({
+  'Solaris': {
+    'platform_bld_script': 'build_sol10-32',
+  },
+  'RedHat': {
+    'platform_bld_script': 'bldscript',
+  },
+}, merge=salt['pillar.get']('bldmgr.lookup'), default='RedHat') %}
