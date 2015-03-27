@@ -9,8 +9,8 @@
 {% set BUILT_MINION_ID = data.data.grains.id %}
 
 {% set BLDMGR_LCMINION = salt['pillar.get']('sqldb:lookup:config:bldmgr_local_minion_name','lcminion') %}
-{% set BLDMGR_DB_NAME = salt['pillar.get']('sqldb:lookup:config:bldmgr_db_name','lcminion') %}
-{% set BLDMGR_DB_TABLE = salt['pillar.get']('sqldb:lookup:config:bldmgr_db_table','lcminion') %}
+{% set BLDMGR_DB_NAME = salt['pillar.get']('sqldb:lookup:config:bldmgr_db_name','bld_machine_logs') %}
+{% set BLDMGR_DB_TABLE = salt['pillar.get']('sqldb:lookup:config:bldmgr_db_table','buildlogs') %}
 
 
 deploy_build_start_sql:
