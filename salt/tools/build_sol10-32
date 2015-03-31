@@ -1,4 +1,4 @@
-#!/usr/bin/bash -x
+#!/usr/bin/bash
 
 set -o functrace
 
@@ -899,7 +899,7 @@ _display "$0: PATH is now set to '$PATH'"
     _error "$0 unsupported platform"
 }
 
-op_log="{$log_file}"    # TODO fixup use of log_file and op_log
+op_log="${log_file}"    # TODO fixup use of log_file and op_log
 
 ## need an identifier for build start and finish, seconds since epoch is fine
 op_idkey=$(($(date +%s) + $RANDOM))
