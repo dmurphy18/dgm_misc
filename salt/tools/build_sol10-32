@@ -7,7 +7,7 @@ set -o pipefail
 ## using bash for now, not path is for Solaris opencsw
 ## run this script as root
 
-SCRIPT_VERSION='2015.02.25.01'
+SCRIPT_VERSION='2015.03.31.01'
 
 
 ## helper functions
@@ -17,7 +17,7 @@ _timestamp() {
 }
 
 _log() {
-    echo "$1" | sed "s/^/$(_timestamp) /" >>"${log_file}"
+    echo "$1" | sed "s/^/$(_timestamp) /" >> "${log_file}"
 }
 
 # Both echo and log
@@ -29,15 +29,17 @@ _display() {
 _error() {
     msg="ERROR: $1"
     echo "$msg" 1>&2
-    echo "$(_timestamp) $msg" >>"${log_file}"
+    echo "$(_timestamp) $msg" >> "${log_file}"
     echo "One or more errors found. See ${log_file} for details." 1>&2
+    op_status="ERRORS"
+    op_comment="solaris 10 32-bit build failures occured"
     exit 1
 }
 
 _warning() {
     msg="WARNING: $1"
     echo "$msg" 1>&2
-    echo "$(_timestamp) $msg" >>"${log_file}"
+    echo "$(_timestamp) $msg" >> "${log_file}"
 }
 
 usage() {
@@ -100,10 +102,11 @@ _install_pkgutil() {
         gmake libgcc_s1 libyaml_dev libssl_dev libmpfr_dev git cmake libssh2_dev \
         mysql56_dev mysql56client libtool automake autoconf swig libncurses_dev \
         berkeleydb48_devel ggettext_dev libncursesw5 libreadline_dev \
-        libsqlite3_dev libgdbm_dev gtar libffi_dev libz_dev curl wget chrpath vim 2>&1 | tee -a $LOGGING
+        libsqlite3_dev libgdbm_dev gtar libffi_dev libz_dev curl wget chrpath 2>&1 | tee -a $LOGGING
     _ret=$?
     if [[ $_ret -ne 0 ]];then
-        _error "$0:$FUNCNAME failed to install utilities with pkgutil, retcode '${_ret}'"
+        ## _error "$0:$FUNCNAME failed to install utilities with pkgutil, retcode '${_ret}'"
+        _warning "$0:$FUNCNAME failed to install utilities with pkgutil, retcode '${_ret}'"
     fi
 }
 
@@ -545,13 +548,13 @@ _install_build_salt() {
 
     SALT_BRANCH_TAG="latest"
     [[ ${RELEASE_TAG} ]] && {
-      SALT_BRANCH_TAG="-b -v${RELEASE_TAG}"
+      SALT_BRANCH_TAG="-b v${RELEASE_TAG}"
     } || { [[ ${RELEASE_BRANCH} ]] && {
       SALT_BRANCH_TAG="-b ${RELEASE_BRANCH}"
       }
     }
     git clone https://github.com/${RELEASE_REPO} ${SALT_BRANCH_TAG} || {
-        _error "$0:$FUNCNAME failed to git clone salt for repo ${RELEASE_REPO}, branch or tag ${SALT_BRANCH_TAG}, retcode '${$?}'";
+        _error "$0:$FUNCNAME failed to git clone salt for repo ${RELEASE_REPO}, branch or tag ${SALT_BRANCH_TAG}, cmd 'git clone https://github.com/${RELEASE_REPO} ${SALT_BRANCH_TAG}',  retcode '${$?}'";
     }
 
     if [[ ! -d "${HERE}/salt/pkg/smartos/esky" ]];then
@@ -705,20 +708,20 @@ echo "   # svcadm enable salt-minion"
     ## tar -czvf "$HERE/salt-${SALT_VER}-solaris-${PKG_SUFFIX}.tar.gz" .
     ## ensure use Solaris tar rather than gnu, otherwise Longlink errors
     ## if compress gnu and expand with Solaris
-    rm -f "$${HERE}/salt-${SALT_BUILD_TAG}-solaris-${PKG_SUFFIX}.tar"
-    rm -f "$${HERE}/salt-${SALT_BUILD_TAG}-solaris-${PKG_SUFFIX}.tar.gz"
-    /usr/sbin/tar -cvf "$${HERE}/salt-${SALT_BUILD_TAG}-solaris-${PKG_SUFFIX}.tar" .
-    gzip "$${HERE}/salt-${SALT_BUILD_TAG}-solaris-${PKG_SUFFIX}.tar"
+    rm -f "${HERE}/salt-${SALT_BUILD_TAG}-solaris-${PKG_SUFFIX}.tar"
+    rm -f "${HERE}/salt-${SALT_BUILD_TAG}-solaris-${PKG_SUFFIX}.tar.gz"
+    /usr/sbin/tar -cvf "${HERE}/salt-${SALT_BUILD_TAG}-solaris-${PKG_SUFFIX}.tar" .
+    gzip "${HERE}/salt-${SALT_BUILD_TAG}-solaris-${PKG_SUFFIX}.tar"
 
     _ret=$?
     if [[ $_ret -ne 0 ]];then
-        _error "$0:$FUNCNAME failure creating gzipped tarball packages for salt on ${OSRELEASE} on platform ${ARCH}, retcode '${_ret}'"
+        _error "$0:$FUNCNAME failure creating gzipped tarball packages for salt on ${OSRELEASE} on platform ${ARCH}, with salt build tag '${SALT_BUILD_TAG}' package suffix '${PKG_SUFFIX}', retcode '${_ret}'"
     fi
 
     ### on the target system
     # untar,  this should create a directory called "salt"
-    ## gunzip salt-${SALT_VER}-solaris-${PKG_SUFFIX}.tar.gz
-    ## /usr/bin/tar -xvf salt-${SALT_VER}-solaris-${PKG_SUFFIX}.tar
+    ## gunzip salt-${SALT_BUILD_TAG}-solaris-${PKG_SUFFIX}.tar.gz"
+    ## /usr/bin/tar -xvf salt-${SALT_BUILD_TAG}-solaris-${PKG_SUFFIX}.tar"
     ## pkgadd -d .
 }
 
@@ -728,7 +731,6 @@ echo "   # svcadm enable salt-minion"
 
 PATH=/opt/bld_salt/bin:/opt/csw/bin:/opt/csw/sbin:/opt/csw/gnu:$PATH
 export PATH
-_display "$0: PATH is now set to '$PATH'"
 
 # using 'GNU getopt' with support for long keywords, 
 # requires separate install on OSX and FreeBSD
@@ -798,14 +800,6 @@ PYCRYPTO_VER='2.6.1'
 PYZMQ_VER='14.4.1'
 ## PYZMQ_VER='14.5.0'
 
-
-ARCH_x86="i86pc"
-ARCH_SPARC="sun4u"
-ARCH=
-
-PKG_ARCH=
-PKG_SUFFIX=
-
 # OS Release
 # get the OS level for Solaris that we are build on
 SYSRELEASE_VER=$(uname -r)
@@ -820,27 +814,27 @@ SALT_BUILD_TAG=
 if [[ ${RELEASE_REPO} != ${DEFAULT_REPO} ]]; then
 SALT_BUILD_TAG="${RELEASE_REPO}-"
 fi
-SALT_BUILD_TAG+="latest"
+
 [[ ${RELEASE_TAG} ]] && {
   SALT_BUILD_TAG+="${RELEASE_TAG}"
 } || { [[ ${RELEASE_BRANCH} ]] && {
     SALT_BUILD_TAG+="${RELEASE_BRANCH}"
+  } || {
+    # default is latest
+    SALT_BUILD_TAG+="latest"
   }
 }
 
 
 ## PY_ESKY=salt-${SALT_BUILD_TAG}.${OSRELEASE}-${ARCH}_${BYTEWIDTH}
-HERE=/export/home/root/src
+
+# here is directory the script is being run from
+## HERE=/export/home/root/src
+HERE=$(pwd)
 
 CFLAGS=
 LDFLAGS=
 PKG_CONFIG_PATH=
-
-## logging
-## want verbose while developing
-VERBOSE=1
-LOGGING=
-
 
 PYTHON_SETUP_PATCH_FILE="${HERE}/setup.patch"
 REQUIREMENTS_PATCH_FILE="${HERE}/requirements.patch"
@@ -850,30 +844,14 @@ _ret=
 
 ## main body
 
-# log and build product names, cp.push needs abs paths
-curr_path=$(pwd)
-op_bld_product="${HERE}/salt-${SALT_BUILD_TAG}-solaris-${PKG_SUFFIX}.tar.gz"
+ARCH_UNSUPPORTED=0
 
-# define output for exit
-op_changed=no
-op_status="ERRORS"
-op_comment="solaris 10 32-bit build failures occured"
+ARCH_x86="i86pc"
+ARCH_SPARC="sun4u"
+ARCH="unsupported"
 
-log_file_format="${HERE}/$0-${OSRELEASE}-${ARCH}.%Y%m%d%H%M%S.log"
-log_file="`date \"+${log_file_format}\"`"
-
-op_log="{$log_file}"    # TODO fixup use of log_file and op_log
-
-## need an identifier for build start and finish, seconds since epoch is fine
-op_idkey=$(date +%s)
-
-op_status="BUILDING"
-op_comment="executing solaris 10 32-bit build script"
-
-trap error_exit SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM EXIT
-
-## fire and event for stating completion with grains and a data dictionary
-salt-call event.send '/salt-internal/build_server/build_result_start' changed="${op_changed}" comment="${op_comment}" status="${op_status}" log="${op_log}" bld_product="${op_bld_product}" idkey="${op_idkey}" with_grains=True
+PKG_ARCH="unsupported"
+PKG_SUFFIX="unsupported"
 
 #check platform first
 if [[ $(uname -m) = 'i86pc' ]];then
@@ -881,7 +859,7 @@ if [[ $(uname -m) = 'i86pc' ]];then
 elif [[ $(uname -m) = 'sun4u' ]]; then
     ARCH=${ARCH_SPARC}
 else
-    _error "$0 does not support this platform"
+    ARCH_UNSUPPORTED=1
 fi
 
 #obtain packing architecture and suffix to use
@@ -892,11 +870,48 @@ elif [[ ${ARCH} = ${ARCH_SPARC} ]];then
     PKG_ARCH=${ARCH_SPARC}
     PKG_SUFFIX='sparc'
 else
-    _error "$0 unsupported platform"
+    ARCH_UNSUPPORTED=1
 fi
+
+## logging
+LOGGING=
+
+# log and build product names, cp.push needs abs paths
+curr_path=$(pwd)
+op_bld_product="${HERE}/salt-${SALT_BUILD_TAG}-solaris-${PKG_SUFFIX}.tar.gz"
+
+# define output for exit
+op_changed=no
+op_status="ERRORS"
+op_comment="solaris 10 32-bit build failures occured"
 
 # reset build product now that PKG_SUFFIX has been defined
 op_bld_product="${HERE}/salt-${SALT_BUILD_TAG}-solaris-${PKG_SUFFIX}.tar.gz"
+
+log_file_format="${HERE}/$(basename $0)-${OSRELEASE}-${ARCH}.%Y%m%d%H%M%S.log"
+log_file="`date \"+${log_file_format}\"`"
+
+## placed here now that log_file is setup
+_display "$0: PATH is now set to '$PATH'"
+
+# now that logging has been setup, check support for architecture
+[[ ${ARCH_UNSUPPORTED} -eq 0 ]] || {
+    _error "$0 unsupported platform"
+}
+
+op_log="{$log_file}"    # TODO fixup use of log_file and op_log
+
+## need an identifier for build start and finish, seconds since epoch is fine
+op_idkey=$(($(date +%s) + $RANDOM))
+
+op_status="BUILDING"
+op_comment="executing solaris 10 32-bit build script"
+
+## fire and event for stating completion with grains and a data dictionary
+_display "$0: event start cmd: 'salt-call event.send /salt-internal/build_server/build_result_start changed=${op_changed} comment=${op_comment} status=${op_status} log=${op_log} bld_product=${op_bld_product} idkey=${op_idkey} with_grains=True'"
+salt-call event.send '/salt-internal/build_server/build_result_start' changed="${op_changed}" comment="${op_comment}" status="${op_status}" log="${op_log}" bld_product="${op_bld_product}" idkey="${op_idkey}" with_grains=True
+
+trap error_exit SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM EXIT
 
 #CC=
 ##check if building on Solaris 11
@@ -913,10 +928,11 @@ export CC
 ## export HERE SALT_BUILD_TAG ARCH BYTEWIDTH OSRELEASE PY_ESKY
 export HERE SALT_BUILD_TAG ARCH BYTEWIDTH OSRELEASE 
 
-if [[ ! -d ${HERE} ]];then
-    mkdir -p ${HERE}
-fi
-cd ${HERE}
+#if [[ ! -d ${HERE} ]];then
+#    mkdir -p ${HERE}
+#fi
+#cd ${HERE}
+#
 
 _clean_out_prev_bld
 

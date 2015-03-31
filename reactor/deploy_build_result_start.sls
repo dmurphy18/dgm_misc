@@ -15,8 +15,9 @@
 
 deploy_build_start_sql:
   local.mysql.query:
-    - tgt: {{ BLDMGR_LCMINION }}
+    - tgt: lcminion
     - arg:
-      - {{ BLDMGR_DB_NAME }}
-      - 'INSERT INTO {{ BLDMGR_DB_TABLE }} (OS, Version, Platform, Status, build_log, build_product, idkey) VALUES ( "{{ BUILT_OS }}", " {{ BUILT_VER }}", "{{ BUILT_PLATFORM }}", "{{ BUILT_STATUS }}", "{{ BUILT_LOG }}", "{{ BUILT_PRODUCT }}" , "{{ BUILT_IDKEY }}" )'
+      - bld_machine_logs
+      - |
+          INSERT INTO buildlogs (OS, Version, Platform, Status, build_log, build_product, idkey) VALUES ( "{{ BUILT_OS }}", "{{ BUILT_VER }}", "{{ BUILT_PLATFORM }}", "{{ BUILT_STATUS }}", "{{ BUILT_LOG }}", "{{ BUILT_PRODUCT }}" , "{{ BUILT_IDKEY }}" )
 

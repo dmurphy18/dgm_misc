@@ -46,11 +46,6 @@
 {% set BLDMGR_SCRIPT_TAG = " -t " ~ salt['pillar.get']('bldmgr:tag') ~ " "  %}
 {% endif %}
 
-## log handling
-{% if salt['pillar.get']('bldmgr:log') %}
-{% set BLDMGR_SCRIPT_LOG = " -l " ~ salt['pillar.get']('bldmgr:log') ~ " "  %}
-{% endif %}
-
 ## shahash handling
 {% if salt['pillar.get']('bldmgr:shahash') %}
 {% set BLDMGR_SCRIPT_SHAHASH = " -s " ~ salt['pillar.get']('bldmgr:shahash') ~ " "  %}
@@ -88,7 +83,7 @@ run_build_test:
     - cwd:  /build_product
     - require:
       - file: sync_build_test
-#    - stateful: True
+    - stateful: True
 #    - watch:
 #      - file: bldscript
 #

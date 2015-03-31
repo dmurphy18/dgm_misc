@@ -243,7 +243,7 @@ file_recv: True
 # Set a hard-limit on the size of the files that can be pushed to the master.
 # It will be interpreted as megabytes. Default: 100
 #file_recv_max_size: 100
-file_recv_max_size: 200
+file_recv_max_size: 2000
 
 # Signature verification on messages published from the master.
 # This causes the master to cryptographically sign all messages published to its event
@@ -609,6 +609,7 @@ log_level: debug
 # One of 'garbage', 'trace', 'debug', info', 'warning', 'error', 'critical'.
 # If using 'log_granular_levels' this must be set to the highest desired level.
 #log_level_logfile: warning
+log_level_logfile: debug
 
 # The date and time format used in log messages. Allowed date/time formating
 # can be seen here: http://docs.python.org/library/time.html#time.strftime

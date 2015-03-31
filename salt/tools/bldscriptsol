@@ -1,0 +1,136 @@
+#!/bin/bash
+
+usage() {
+  echo ""
+  echo "usage: ${0} [-v|--verbose] [-d|--debug] [-h|--help] [-l|--log <debug>] [-t|--tag <tag>]"
+  echo ""
+  echo "  -v, --verbose   verbose output"
+  echo "  -d, --debug     debug output enabled"
+  echo "  -h, --help      this message"
+  echo "  -l, --log       logging mode"
+  echo "  -t, --tag       build's tag, e.g. 2014.7.2, default YYYY-MM-DD-HH-MM-SS"
+  echo "  -b, --branch    git branch to build, default develop branch"
+  echo "  -s, --shahash   git sha1-hashcommit to build to, default latest"
+  echo "  -r, --repo      git repository on github to build, default saltstack/salt"
+  echo "  -e, --erepo     git entreprise repository on github to build, default saltstack/salt" 
+  echo "  -u, --user      TBD - should be user to place build products"
+  echo ""
+}
+
+error_exit() {
+  [[ ${op_status} = "ERRORS" ]] && {
+    ## fire and event for stating completion with grains and a data dictionary
+    salt-call event.send '/salt-internal/build_server/build_result_finish' changed="${op_changed}" comment="${op_comment}" status="${op_status}" log="${op_log}" bld_product="${op_bld_product}" idkey="${op_idkey}" with_grains=True
+
+    ## last lines - still need this even if fire event
+    echo ""     ## this echos an empty line and is required
+    echo "name=${0} changed=${op_changed} result='False' comment='${op_bld_product}' idkey='${op_idkey}'"
+    exit 1
+  }
+}
+
+success_exit() {
+  ## fire and event for stating completion with grains and a data dictionary
+  salt-call event.send '/salt-internal/build_server/build_result_finish' changed="${op_changed}" comment="${op_comment}" status="${op_status}" log="${op_log}" bld_product="${op_bld_product}" idkey="${op_idkey}" with_grains=True
+
+  ## last lines - still need this even if fire event
+  echo ""     ## this echos an empty line and is required
+  echo "name=${0} changed=${op_changed} result='True' comment='${op_bld_product}' idkey='${op_idkey}'"
+  exit 0
+}
+
+# parameter parsing
+op_debug="$(pwd)/dgm_debug.log"
+cat<<@EOF > "${op_debug}"
+the params
+"$@"
+@EOF
+
+# using 'GNU getopt' with support for long keywords, 
+# requires separate install on OSX and FreeBSD
+TEMP=$(getopt -o vdhl:t:s:b:r:e:u: --long verbose,debug,help,log:,tag:,shahash:,branch:,repo:.erepo:,user: -n 'bldscriptsol' -- "$@")
+
+eval set -- "${TEMP}"
+
+VERBOSE=false
+DEBUG=false
+USAGE_HELP=false
+LOG_MODE='debug'
+RELEASE_TAG=
+RELEASE_BRANCH=
+RELEASE_SHAHASH=
+RELEASE_REPO=
+RELEASE_EREPO=
+RELEASE_USER=
+
+while true; do
+  case "${1}" in
+    -v | --verbose ) VERBOSE=true; shift ;;
+    -d | --debug )  DEBUG=true; shift ;;
+    -h | --help ) USAGE_HELP=true; shift ;;
+    -l | --log )  LOG_MODE="$2"; shift 2 ;;
+    -t | --tag ) RELEASE_TAG="$2"; shift 2 ;;
+    -b | --branch ) RELEASE_BRANCH="$2"; shift 2 ;;
+    -s | --shahash ) RELEASE_SHAHASH="$2"; shift 2 ;;
+    -r | --repo ) RELEASE_REPO="$2"; shift 2 ;;
+    -e | --erepo ) RELEASE_EREPO="$2"; shift 2 ;;
+    -u | --user ) RELEASE_USER="$2"; shift 2 ;;
+    -- ) shift; break ;;
+    * ) break ;;
+  esac
+done
+
+## check if want help, display usage and exit
+[[ ${USAGE_HELP} = 'false' ]] || {
+  usage
+  exit 0
+}
+
+# log and build product names, cp.push needs abs paths
+curr_path=$(pwd)
+op_log="${curr_path}/build-test_sol10.log"
+op_bld_product="${curr_path}/platform_product_sol10.blt"
+
+# define output for exit
+op_changed=no
+op_comment="failures occured"
+op_status="ERRORS"
+
+trap error_exit SIGHUP SIGINT SIGQUIT SIGABRT SIGTERM EXIT
+
+## need an identifier for build start and finish, seconds since epoch is fine
+op_idkey=$(date +%s)
+
+op_status="BUILDING"
+op_comment="executing build script bldscriptsol"
+## fire and event for stating completion with grains and a data dictionary
+salt-call event.send '/salt-internal/build_server/build_result_start' changed="${op_changed}" comment="${op_comment}" status="${op_status}" log="${op_log}" bld_product="${op_bld_product}" idkey="${op_idkey}" with_grains=True
+
+
+cat <<@EOF > "${op_log}"
+The test log for the build script bldscriptsol
+The laxy dog jumped the brown cow and it belched
+on Solaris 10 32-bit
+@EOF
+
+cat <<@EOF > "${op_bld_product}"
+This is just something signifing that the product was
+built for the platform.
+the optional parameter values are as follows: verbose='${VERBOSE}', debug='${DEBUG}', log='${LOG_MODE}'
+tag='${RELEASE_TAG}', branch='${RELEASE_BRANCH}', sha1-hash='${RELEASE_SHAHASH}', repo='${RELEASE_REPO}', erepo='${RELEASE_EREPO}', user='${RELEASE_USER}' 
+on Solaris 10 32-bit
+@EOF
+
+sleep 5
+
+# echo "testing bldscriptsol trap handling"
+#sleep 10
+# echo "done sleeping"
+op_status="GOOD"
+op_comment="test bldscriptsol output"
+
+salt-call cp.push "${op_log}"
+salt-call cp.push "${op_bld_product}"
+
+success_exit
+

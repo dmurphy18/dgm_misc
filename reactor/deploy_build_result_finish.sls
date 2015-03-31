@@ -17,15 +17,16 @@
 
 deploy_build_finish_sql:
   local.mysql.query:
-    - tgt: {{ BLDMGR_LCMINION }}
+    - tgt: lcminion
     - arg:
-      - {{ BLDMGR_DB_NAME }}
-      - 'UPDATE {{ BLDMGR_DB_TABLE }} SET build_end="{{ BUILT_FINISH_TIME }}", Status="{{ BUILT_STATUS }}", build_log="{{ BUILT_LOG }}", build_product="{{ BUILT_PRODUCT }}" WHERE idkey={{ BUILT_IDKEY }}'
+      - bld_machine_logs
+      - |
+          UPDATE buildlogs SET build_end="{{ BUILT_FINISH_TIME }}", Status="{{ BUILT_STATUS }}", build_log="{{ BUILT_LOG }}", build_product="{{ BUILT_PRODUCT }}" WHERE idkey={{ BUILT_IDKEY }}
 
 
 deploy_build_finish_file1:
   local.cp.get_file:
-    - tgt: {{ BLDMGR_LCMINION }}
+    - tgt: lcminion
     - arg:
       - salt://{{ BUILT_MINION_ID }}{{ BUILT_LOG }}
       - /srv/salt/build_results{{ BUILT_LOG }}
@@ -34,7 +35,7 @@ deploy_build_finish_file1:
 
 deploy_build_finish_file2:
   local.cp.get_file:
-    - tgt: {{ BLDMGR_LCMINION }}
+    - tgt: lcminion
     - arg:
       - salt://{{ BUILT_MINION_ID }}{{ BUILT_PRODUCT }}
       - /srv/salt/build_results{{ BUILT_PRODUCT }}

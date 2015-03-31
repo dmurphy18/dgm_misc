@@ -1,7 +1,7 @@
 {% set sql_db_package = salt['pillar.get']('sqldb:lookup:config:sqldb_pkg','') %}
 {% set sql_db_service = salt['pillar.get']('sqldb:lookup:config:sqldb_service','') %}
 {% set sql_db_host = salt['pillar.get']('sqldb:lookup:config:sqldb_host','localhost') %}
-{% set sql_db_port = salt['pillar.get']('sqldb:lookup:config:sqldb_port','3306') %}
+{% set sql_db_port = salt['pillar.get']('sqldb:lookup:config:sqldb_port',3306) %}
 
 {% set sql_db_charset = salt['pillar.get']('sqldb:lookup:config:db_charset', 'utf8')  %}
 {% set sql_db_user_rights = salt['pillar.get']('sqldb:lookup:config:db_user_rights', 'all privileges')  %}
@@ -41,6 +41,12 @@ sql_db_user_exists:
     - password: {{ sql_db_pwd }}
     - saltenv:
       - LC_ALL: "en_US.utf8"
+    - kwargs:
+        connection_host: {{ sql_db_host }}
+        connection_port: {{ sql_db_port }}
+        connection_user: {{ sql_db_user }}
+        connection_pass: {{ sql_db_pwd }}
+        connection_db: {{ sql_db_name }}
     - require:
       - mysql_database: sql_db_exists
 
