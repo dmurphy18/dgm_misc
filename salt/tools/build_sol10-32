@@ -888,7 +888,7 @@ op_comment="solaris 10 32-bit build failures occured"
 # reset build product now that PKG_SUFFIX has been defined
 op_bld_product="${HERE}/salt-${SALT_BUILD_TAG}-solaris-${PKG_SUFFIX}.tar.gz"
 
-log_file_format="${HERE}/$(basename $0)-${OSRELEASE}-${ARCH}.%Y%m%d%H%M%S.log"
+log_file_format="${HERE}/$(basename $0)-${SALT_BUILD_TAG}-${OSRELEASE}-${ARCH}.%Y%m%d%H%M%S.log"
 log_file="`date \"+${log_file_format}\"`"
 
 ## placed here now that log_file is setup
