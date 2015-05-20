@@ -3,7 +3,7 @@
 %define __python_ver 27
 %define __python %{_bindir}/python%{?pybasever}
 
-%global include_tests 1
+%global include_tests 0
 
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
@@ -32,13 +32,43 @@ Source8: %{srcname}-minion.service
 Source9: %{srcname}-api.service
 Source10: logrotate.salt
 
-Patch0:  skip_tests_%{version}.patch
+## Patch0:  skip_tests_%{version}.patch
 
 Conflicts: %{srcname}
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch: noarch
+
+## TODO DGM parseBoolanExpression causing issues
+## %if (0%{?include_tests})
+## BuildRequires: m2crypto
+## BuildRequires: python-crypto
+## BuildRequires: python-jinja2
+## BuildRequires: python-msgpack
+## BuildRequires: python-pip
+## BuildRequires: python-zmq
+## BuildRequires: PyYAML
+## BuildRequires: python-requests
+## BuildRequires: python-unittest2
+## # this BR causes windows tests to happen
+## # clearly, that's not desired
+## # https://github.com/saltstack/salt/issues/3749
+## BuildRequires: python-mock
+## BuildRequires: git
+## BuildRequires: python-libcloud
+## # argparse now a salt-testing requirement
+## BuildRequires: python-argparse
+## %endif
+##
+## BuildRequires: python-devel
+## Requires: m2crypto
+## Requires: python-crypto
+## Requires: python-jinja2
+## Requires: python-msgpack
+## Requires: PyYAML
+## Requires: python-requests
+## Requires: python-zmq
 
 %description
 Salt is a distributed remote execution system used to execute commands and 
@@ -109,7 +139,7 @@ of an agent (salt-minion) service.
 %setup -T -D -a 1
 
 cd %{srcname}-%{version}
-%patch0 -p1
+## %patch0 -p1
 
 %build
 

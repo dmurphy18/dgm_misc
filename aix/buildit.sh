@@ -48,9 +48,6 @@ fi
 ## 
 
 
-
-
-
 # Install RPMs and Python Source RPM
 ## TODO DGM rpm -Uvh *.rpm --force || exit 1
 ## Need to install from list since install order can be significant for dependencies
@@ -251,7 +248,7 @@ export PATH="$freeware/bin:$freeware/sbin:/usr/local/bin:/usr/lib/instl:/usr/bin
 ##  FFLAGS="-O -I$freeware/include"
 ##  LDFLAGS="-L$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0 -L$freeware/lib -Wl,-blibpath:$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0:$freeware/lib:/usr/lib:/lib -Wl,-bmaxdata:0x80000000 -Wl,-bnoquiet -Wl,-bloadmap:mymap.log -v"
 a
-## tom's seetting
+## tom's setting
 export OBJECT_MODE=32
 export CC=gcc
 export CFLAGS="-maix32 -g -mminimal-toc -DSYSV -D_AIX -D_AIX32 -D_AIX41 -D_AIX43 -D_AIX51 -D_ALL_SOURCE -DFUNCPROTO=15 -O2 -I/opt/freeware/include"
@@ -262,6 +259,9 @@ export FFLAGS="-O -I/opt/freeware/include"
 export LD=ld
 export LDFLAGS="-L/opt/freeware/lib -Wl,-blibpath:/opt/freeware/lib64:/opt/freeware/lib:/usr/lib:/lib -Wl,-bmaxdata:0x80000000"
 export PATH="/opt/freeware/bin:/opt/freeware/sbin:/usr/local/bin:/usr/lib/instl:/usr/bin:/bin:/etc:/usr/sbin:/usr/ucb:/usr/bin/X11:/sbin:/usr/vac/bin:/usr/vacpp/bin:/usr/ccs/bin:/usr/dt/bin:/usr/opt/perl5/bin"
+
+## if doign 32-bit then adjust PYTHONPATH too
+export PYTHONPATH=$freeware/lib/python2.7:$freeware/lib/python2.7/site-packages
 
 ############################# INSTALL SALT DEPS ##############################
 
@@ -303,36 +303,25 @@ gzip --decompress --stdout apache-libcloud-0.17.0.tar.gz | tar -xvf - || exit 1
 cd apache-libcloud-0.17.0 || exit 1
 python setup.py install || exit 1
 
-{
-  ## TODO - DGM can only get it to build in 32-bit mode
-##   OBJECT_MODE=32
-##   CFLAGS="-maix32 -g -mminimal-toc -DSYSV -D_AIX -D_AIX32 -D_AIX41 -D_AIX43 -D_AIX51 -D_ALL_SOURCE -DFUNCPROTO=15 -O2 -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include  -I$freeware/include"
-##   CXXFLAGS="$CFLAGS -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include/c++ -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include/c++/powerpc-ibm-aix6.1.0.0 -I$freeware/include"
-##   FFLAGS="-O -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include -I$freeware/include"
-##   LDFLAGS="-L$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/ppc64 -L$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0 -L$freeware/lib -Wl,-blibpath:$freeware/lib64:$freeware/lib:/usr/lib:/lib -Wl,-bmaxdata:0x80000000 -Wl,-bnoquiet -Wl,-bloadmap:mymap.log -v"
-## 
-  cd "$deps/salt_prereqs" || exit 1
-  gzip --decompress --stdout M2Crypto-0.22.3.tar.gz | tar -xvf - || exit 1
-  cd M2Crypto-0.22.3 || exit 1
-  python setup.py build build_ext --openssl=$freeware || exit 1
-  python setup.py install || exit 1
-}
+cd "$deps/salt_prereqs" || exit 1
+gzip --decompress --stdout requests-2.7.0.tar.gz | tar -xvf - || exit 1
+cd requests-2.7.0 || exit 1
+python setup.py install || exit 1
 
-{
+## TODO - DGM can only get it to build in 32-bit mode
+cd "$deps/salt_prereqs" || exit 1
+gzip --decompress --stdout M2Crypto-0.22.3.tar.gz | tar -xvf - || exit 1
+cd M2Crypto-0.22.3 || exit 1
+python setup.py build_ext --openssl=$freeware || exit 1
+python setup.py install || exit 1
+
 ##   ## TODO - DGM can only get it to build in 32-bit mode
-##   OBJECT_MODE=32
-##   CFLAGS="-maix32 -g -mminimal-toc -DSYSV -D_AIX -D_AIX32 -D_AIX41 -D_AIX43 -D_AIX51 -D_ALL_SOURCE -DFUNCPROTO=15 -O2 -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include  -I$freeware/include"
-##   CXXFLAGS="$CFLAGS -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include/c++ -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include/c++/powerpc-ibm-aix6.1.0.0 -I$freeware/include"
-##   FFLAGS="-O -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include -I$freeware/include"
-##   LDFLAGS="-L$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/ppc64 -L$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0 -L$freeware/lib -Wl,-blibpath:$freeware/lib64:$freeware/lib:/usr/lib:/lib -Wl,-bmaxdata:0x80000000 -Wl,-bnoquiet -Wl,-bloadmap:mymap.log -v"
-## 
-  cd "$deps/salt_prereqs" || exit 1
-  gzip --decompress --stdout pycrypto-2.6.1.tar.gz | tar -xvf - || exit 1
-  cd pycrypto-2.6.1 || exit 1
-  # Patch source
-  patch -Np1 -i "$deps/pycrypto-2.6.1.patch" || exit 1
-  python setup.py install || exit 1
-}
+cd "$deps/salt_prereqs" || exit 1
+gzip --decompress --stdout pycrypto-2.6.1.tar.gz | tar -xvf - || exit 1
+cd pycrypto-2.6.1 || exit 1
+# Patch source
+patch -Np1 -i "$deps/pycrypto-2.6.1.patch" || exit 1
+python setup.py install || exit 1
 
 cd "$deps/salt_prereqs" || exit 1
 gzip --decompress --stdout libsodium-1.0.2.tar.gz | tar -xvf - || exit 1
@@ -343,97 +332,48 @@ make install || exit 1
 
 fi  # DGM end fi dgmskip
 
-{
-##   ## TODO - DGM can only get it to build in 32-bit mode
-##   OBJECT_MODE=32
-##   CFLAGS="-maix32 -g -mminimal-toc -DSYSV -D_AIX -D_AIX32 -D_AIX41 -D_AIX43 -D_AIX51 -D_ALL_SOURCE -DFUNCPROTO=15 -O2 -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include  -I$freeware/include"
-##   CXXFLAGS="$CFLAGS -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include/c++ -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include/c++/powerpc-ibm-aix6.1.0.0 -I$freeware/include"
-##   FFLAGS="-O -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include -I$freeware/include"
-##   LDFLAGS="-L$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/ppc64 -L$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0 -L$freeware/lib -Wl,-blibpath:$freeware/lib64:$freeware/lib:/usr/lib:/lib -Wl,-bmaxdata:0x80000000 -Wl,-bnoquiet -Wl,-bloadmap:mymap.log -lsodium -lc -v"
-##
 
-##   OBJECT_MODE=32
-##   CFLAGS='-maix32 -g -mminimal-toc -DSYSV -D_AIX -D_AIX32 -D_AIX41 -D_AIX43 -D_AIX51 -D_ALL_SOURCE -DFUNCPROTO=15 -O2 -I/opt/freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include  -I/opt/freeware/include'
-##   CXXFLAGS='-maix32 -g -mminimal-toc -DSYSV -D_AIX -D_AIX32 -D_AIX41 -D_AIX43 -D_AIX51 -D_ALL_SOURCE     -DFUNCPROTO=15 -O2 -I/opt/freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include  -I/opt/freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include/c++ -I/opt/freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include/c++/powerpc-ibm-aix6.1.0.0 -I/opt/freeware/include'
-##   FFLAGS='-O -I/opt/freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include -I/opt/freeware/include'
-##   LDFLAGS='-L/opt/freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/ppc -L/opt/freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0 -L/opt/freeware/lib -Wl,-blibpath:/opt/freeware/lib64:/opt/freeware/lib:/usr/lib:/lib -Wl,-bmaxdata:0x80000000 -Wl,-bnoquiet -Wl,-bloadmap:mymap.log -lsodium -lc -v'
-##
+cd "$deps/salt_prereqs" || exit 1
 
-##   ## Other setting to try
-##   export OBJECT_MODE=32
-##   export CC=gcc
-##   export CFLAGS="-maix32 -g -mminimal-toc -DSYSV -D_AIX -D_AIX32 -D_AIX41 -D_AIX43 -D_AIX51 -D_ALL_SOURCE -DFUNCPROTO=15 -O2 -I/opt/freeware/include"
-##   export CXX=g++
-##   export CXXFLAGS=$CFLAGS
-##   export F77=xlf
-##   export FFLAGS="-O -I/opt/freeware/include"
-##   export LD=ld
-##   export LDFLAGS="-L/opt/freeware/lib -Wl,-blibpath:/opt/freeware/lib64:/opt/freeware/lib:/usr/lib:/lib -Wl,-bmaxdata:0x80000000"
-##   export PATH="/opt/freeware/bin:/opt/freeware/sbin:/usr/local/bin:/usr/lib/instl:/usr/bin:/bin:/etc:/usr/sbin:/usr/ucb:/usr/bin/X11:/sbin:/usr/vac/bin:/usr/vacpp/bin:/usr/ccs/bin:/usr/dt/bin:/usr/opt/perl5/bin"
+## gzip --decompress --stdout zeromq-gz | tar -xvf - || exit 1
+## cd zeromq-3.2.3 || exit 1
+gzip --decompress --stdout zeromq-4.0.5.tar.gz | tar -xvf - || exit 1
+cd zeromq-4.0.5 || exit 1
 
-##   cd "$deps/salt_prereqs" || exit 1
-##   gzip --decompress --stdout zeromq-4.0.5.tar.gz | tar -xvf - || exit 1
-##   cd zeromq-4.0.5 || exit 1
-## 
-##   # clean out any old libraries
-##   rm  -f /opt/freeware/libzmq.*
-## 
-##   ## ./configure --prefix=$freeware
-##   /opt/freeware/bin/bash ./configure --with-gcc --prefix=/opt/freeware
-##   make || exit 1
-##   make install || exit 1
+# clean out any old libraries
+rm  -f /opt/freeware/lib/libzmq.*
+rm  -f /opt/freeware/lib64/libzmq.*
 
-  # tiom's settings
-  OBJECT_MODE=32
-  CFLAGS="-maix32 -g -mminimal-toc -DSYSV -D_AIX -D_AIX32 -D_AIX41 -D_AIX43 -D_AIX51 -D_ALL_SOURCE -DFUNCPROTO=15 -O2 -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include  -I$freeware/include"
-  CXXFLAGS="$CFLAGS -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include/c++ -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include/c++/powerpc-ibm-aix6.1.0.0 -I$freeware/include"
-  FFLAGS="-O -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include -I$freeware/include"
-  LDFLAGS="-L$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/ppc64 -L$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0 -L$freeware/lib -Wl,-blibpath:$freeware/lib64:$freeware/lib:/usr/lib:/lib -Wl,-bmaxdata:0x80000000 -Wl,-bnoquiet -Wl,-bloadmap:mymap.log -v"
+./configure --prefix=$freeware
+## /opt/freeware/bin/bash ./configure --with-gcc --prefix=/opt/freeware
+make || exit 1
+make install || exit 1
 
-  cd "$deps/salt_prereqs" || exit 1
-  gzip --decompress --stdout zeromq-gz | tar -xvf - || exit 1
-  cd zeromq-3.2.3 || exit 1
+## TODO - DGM can only get it to build in 32-bit mode
 
-  # clean out any old libraries
-  rm  -f /opt/freeware/lib/libzmq.*
-
-  ## ./configure --prefix=$freeware
-  /opt/freeware/bin/bash ./configure --with-gcc --prefix=/opt/freeware
-  make || exit 1
-  make install || exit 1
-}
-
-{
-##   ## TODO - DGM can only get it to build in 32-bit mode
-##  OBJECT_MODE=32
-##  CFLAGS="-maix32 -g -mminimal-toc -DSYSV -D_AIX -D_AIX32 -D_AIX41 -D_AIX43 -D_AIX51 -D_ALL_SOURCE -DFUNCPROTO=15 -O2 -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include  -I$freeware/include"
-##  CXXFLAGS="$CFLAGS -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include/c++ -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include/c++/powerpc-ibm-aix6.1.0.0 -I$freeware/include"
-##  FFLAGS="-O -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include -I$freeware/include"
-##  LDFLAGS="-L$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/ppc64 -L$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0 -L$freeware/lib -Wl,-blibpath:$freeware/lib64:$freeware/lib:/usr/lib:/lib -Wl,-bmaxdata:0x80000000 -Wl,-bnoquiet -Wl,-bloadmap:mymap.log -lsodium -lc -v"
-## 
-##   OBJECT_MODE=32
-##   CFLAGS="-maix32 -g -mminimal-toc -DSYSV -D_AIX -D_AIX32 -D_AIX41 -D_AIX43 -D_AIX51 -D_ALL_SOURCE -DFUNCPROTO=15 -O2 -I$freeware/include"
-##   CXXFLAGS="-maix32 -g -mminimal-toc -DSYSV -D_AIX -D_AIX32 -D_AIX41 -D_AIX43 -D_AIX51 -D_ALL_SOURCE -DFUNCPROTO=15 -O2 -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include/c++ -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include/c++/powerpc-ibm-aix6.1.0.0 -I$freeware/include"
-##   FFLAGS="-O -I$freeware/include"
-##   LDFLAGS="-L$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0 -L$freeware/lib -Wl,-blibpath:$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0:$freeware/lib:/usr/lib:/lib -Wl,-bmaxdata:0x80000000 -Wl,-bnoquiet -Wl,-bloadmap:mymap.log -v"
-## 
+cd "$deps/salt_prereqs" || exit 1
+gzip --decompress --stdout pyzmq-14.5.0.tar.gz | tar -xvf - || exit 1
+cd pyzmq-14.5.0 || exit 1
+python setup.py build --zmq=$freeware || exit 1
+python setup.py install || exit 1
 
 
-## tom's seetting
-export OBJECT_MODE=32
-export CC=gcc
-export CFLAGS="-maix32 -g -mminimal-toc -DSYSV -D_AIX -D_AIX32 -D_AIX41 -D_AIX43 -D_AIX51 -D_ALL_SOURCE -DFUNCPROTO=15 -O2 -I/opt/freeware/include"
-export CXX=g++
-export CXXFLAGS=$CFLAGS
-export F77=xlf
-export FFLAGS="-O -I/opt/freeware/include"
-export LD=ld
-export LDFLAGS="-L/opt/freeware/lib -Wl,-blibpath:/opt/freeware/lib64:/opt/freeware/lib:/usr/lib:/lib -Wl,-bmaxdata:0x80000000"
-export PATH="/opt/freeware/bin:/opt/freeware/sbin:/usr/local/bin:/usr/lib/instl:/usr/bin:/bin:/etc:/usr/sbin:/usr/ucb:/usr/bin/X11:/sbin:/usr/vac/bin:/usr/vacpp/bin:/usr/ccs/bin:/usr/dt/bin:/usr/opt/perl5/bin"
+## build Salt RPMs
+cd "$deps/salt_prereqs" || exit 1
+salt_ver="3.2.0"
+gzip --decompress --stdout salt-${salt_ver}.tar.gz | tar -xvf - || exit 1
+cd salt-3.2.0 || exit 1
 
-  cd "$deps/salt_prereqs" || exit 1
-  gzip --decompress --stdout pyzmq-14.5.0.tar.gz | tar -xvf - || exit 1
-  cd pyzmq-14.5.0 || exit 1
-  python setup.py build --zmq=$freeware || exit 1
-  python setup.py install || exit 1
-}
+cd salt
+python setup.py sdist
+cp  dist/salt-${salt_ver}.tar.gz $freeware/rpmbuild/SOURCES
+
+## TODO  DGM need to get from github
+## cp SaltTesting.2015.2.6.tar.gz $freeware/rpmbuild/SOURCES
+## cp salt.spec  from pkg_updates to $freeware/rpmbuild/SPECS
+## cp skip_tests_3.2.0.patch from pkg_updates to $freeware/rpmbuild/SOURCES
+rpm -bb $freeware/rpmbuild/SPECS/salt.spec
+
+cd $freeware/rpmbuild/RPMS
+rpm -ivh salt-enterprise-3.2.0-5.aix6.1.noarch.rpm salt-enterprise-minion-3.2.0-5.aix6.1.noarch.rpm
+
