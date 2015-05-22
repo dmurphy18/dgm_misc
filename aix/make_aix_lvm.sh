@@ -12,7 +12,7 @@ for newlv in freeware salt; do
     # Make logical volume
     echo "Making jfs2 volume for logical volume '$newlv'"
     ## dgm mklv -t jfs2 -y $newlv $vg 10G || exit 1
-    mklv -t jfs2 -y $newlv $vg 6G || exit 1
+    mklv -t jfs2 -y $newlv $vg 8G || exit 1
     # Format logical volume
     echo "Formatting jfs2 volume for logical volume '$newlv'"
     yes | mkfs -o log=/dev/$loglvname -V jfs2 /dev/$newlv || exit 1

@@ -87,15 +87,15 @@ cd $cdir
 
 ## need to get later gcc and libffi to be able to build python
 ## from perlz
-rpm -ev gcc-locale-4.2.0-3 gcc-4.2.0-3 gcc-c++-4.2.0-3 libgcc-4.2.0-3 libstdc++-4.2.0-3 libstdc++-devel-4.2.0-3
-rpm -ivh gcc-4.8.0-2.aix6.1.ppc.rpm libgcc-4.8.0-2.aix6.1.ppc.rpm gcc-cpp-4.8.0-2.aix6.1.ppc.rpm
-rpm -ivh libstdc++-4.8.0-2.aix6.1.ppc.rpm libstdc++-devel-4.8.0-2.aix6.1.ppc.rpm gcc-c++-4.8.0-2.aix6.1.ppc.rpm
-
+## rpm -ev gcc-locale-4.2.0-3 gcc-4.2.0-3 gcc-c++-4.2.0-3 libgcc-4.2.0-3 libstdc++-4.2.0-3 libstdc++-devel-4.2.0-3
+## rpm -ivh gcc-4.8.0-2.aix6.1.ppc.rpm libgcc-4.8.0-2.aix6.1.ppc.rpm gcc-cpp-4.8.0-2.aix6.1.ppc.rpm
+## rpm -ivh libstdc++-4.8.0-2.aix6.1.ppc.rpm libstdc++-devel-4.8.0-2.aix6.1.ppc.rpm gcc-c++-4.8.0-2.aix6.1.ppc.rpm
+## 
 ## from IBM
 # The following list are items preinstalled with IBM AIX Linux tools
 ## upgrade pre-installed expat-1.95.7-4
-rpm -Uvh expat-2.0.1-2.aix5.3.ppc.rpm
-rpm -Uvh expat-devel-2.0.1-2.aix5.3.ppc.rpm
+## rpm -Uvh expat-2.0.1-2.aix5.3.ppc.rpm
+## rpm -Uvh expat-devel-2.0.1-2.aix5.3.ppc.rpm
 
 
 ## Salt provided rpms
@@ -221,20 +221,20 @@ unzip distribute-0.7.3.zip
 python setup.py install
 
 
-# Set a PYTHONPATH to include the newly-built python
-export PYTHONPATH=$freeware/lib64/python2.7:$freeware/lib64/python2.7/site-packages:$freeware/lib/python2.7:$freeware/lib/python2.7/site-packages
-
-# Set env vars for compiled components of salt prereqs
-export OBJECT_MODE=64
-export CC=gcc
-export CFLAGS="-maix64 -g -mminimal-toc -DSYSV -D_AIX -D_AIX51 -D_ALL_SOURCE -DFUNCPROTO=15 -O2 -I$freeware/include"
-export CXX=g++
-export CXXFLAGS="$CFLAGS -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include  -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include/c++ -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include/c++/powerpc-ibm-aix6.1.0.0 -I$freeware/include"
-export F77=xlf
-export FFLAGS="-O  -I$freeware/include"
-export LD=ld
-export LDFLAGS="-L$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/ppc64 -L$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0 -L$freeware/lib -Wl,-blibpath:$freeware/lib64:$freeware/lib:/usr/lib:/lib -Wl,-bmaxdata:0x80000000 -Wl,-bnoquiet -Wl,-bloadmap:mymap.log -v"
-export PATH="$freeware/bin:$freeware/sbin:/usr/local/bin:/usr/lib/instl:/usr/bin:/bin:/etc:/usr/sbin:/usr/ucb:/usr/bin/X11:/sbin:/usr/vac/bin:/usr/vacpp/bin:/usr/ccs/bin:/usr/dt/bin:/usr/opt/perl5/bin"
+## # Set a PYTHONPATH to include the newly-built python
+## export PYTHONPATH=$freeware/lib64/python2.7:$freeware/lib64/python2.7/site-packages:$freeware/lib/python2.7:$freeware/lib/python2.7/site-packages
+## 
+## # Set env vars for compiled components of salt prereqs
+## export OBJECT_MODE=64
+## export CC=gcc
+## export CFLAGS="-maix64 -g -mminimal-toc -DSYSV -D_AIX -D_AIX51 -D_ALL_SOURCE -DFUNCPROTO=15 -O2 -I$freeware/include"
+## export CXX=g++
+## export CXXFLAGS="$CFLAGS -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include  -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include/c++ -I$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/include/c++/powerpc-ibm-aix6.1.0.0 -I$freeware/include"
+## export F77=xlf
+## export FFLAGS="-O  -I$freeware/include"
+## export LD=ld
+## export LDFLAGS="-L$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0/ppc64 -L$freeware/lib/gcc/powerpc-ibm-aix6.1.0.0/4.8.0 -L$freeware/lib -Wl,-blibpath:$freeware/lib64:$freeware/lib:/usr/lib:/lib -Wl,-bmaxdata:0x80000000 -Wl,-bnoquiet -Wl,-bloadmap:mymap.log -v"
+## export PATH="$freeware/bin:$freeware/sbin:/usr/local/bin:/usr/lib/instl:/usr/bin:/bin:/etc:/usr/sbin:/usr/ucb:/usr/bin/X11:/sbin:/usr/vac/bin:/usr/vacpp/bin:/usr/ccs/bin:/usr/dt/bin:/usr/opt/perl5/bin"
 
 
 ## due to issues with pyzmq not linking complation in 64-bit more, requiring changes both to it
@@ -260,7 +260,7 @@ export LD=ld
 export LDFLAGS="-L/opt/freeware/lib -Wl,-blibpath:/opt/freeware/lib64:/opt/freeware/lib:/usr/lib:/lib -Wl,-bmaxdata:0x80000000"
 export PATH="/opt/freeware/bin:/opt/freeware/sbin:/usr/local/bin:/usr/lib/instl:/usr/bin:/bin:/etc:/usr/sbin:/usr/ucb:/usr/bin/X11:/sbin:/usr/vac/bin:/usr/vacpp/bin:/usr/ccs/bin:/usr/dt/bin:/usr/opt/perl5/bin"
 
-## if doign 32-bit then adjust PYTHONPATH too
+## if doing 32-bit then adjust PYTHONPATH too
 export PYTHONPATH=$freeware/lib/python2.7:$freeware/lib/python2.7/site-packages
 
 ############################# INSTALL SALT DEPS ##############################
