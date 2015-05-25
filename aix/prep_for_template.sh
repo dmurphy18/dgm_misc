@@ -162,7 +162,7 @@ echo "*.pyo" >> "${prep_dir}/excl.txt"
 echo "lost+found" >> "${prep_dir}/excl.txt"
 echo "vnc" >> "${prep_dir}/excl.txt"
 echo "rpmbuild" >> "${prep_dir}/excl.txt"
-echo "packages" >> "${prep_dir}/excl.txt"
+## echo "packages" >> "${prep_dir}/excl.txt"
 echo "GNUPro" >> "${prep_dir}/excl.txt"
 echo "man/man3" >> "${prep_dir}/excl.txt"
 echo "man/man5" >> "${prep_dir}/excl.txt"
@@ -177,6 +177,7 @@ echo "bin/vncviewer" >> "${prep_dir}/excl.txt"
 echo "src" >> "${prep_dir}/excl.txt"
 echo "var" >> "${prep_dir}/excl.txt"
 echo "tmp" >> "${prep_dir}/excl.txt"
+echo "lib/libffi-3.0.13" >> "${prep_dir}/excl.txt"
 
 cd ${built_dir}
 tar -c -X "${prep_dir}/excl.txt" -f "${prep_dir}/${tarball_name}.tar" *

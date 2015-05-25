@@ -54,8 +54,8 @@ _gen_post_install_remove_scripts() {
     echo "#!/usr/bin/ksh" > "${post_install_file}"
     chmod 755 "${post_install_file}"
 
-    echo "#!/usr/bin/ksh" > "${uninstall_rm_file}"
-    chmod 755 "${uninstall_rm_file}"
+##    echo "#!/usr/bin/ksh" > "${uninstall_rm_file}"
+##    chmod 755 "${uninstall_rm_file}"
 
     for afile in ${symlinkfilelist}
     do
@@ -73,7 +73,7 @@ _gen_post_install_remove_scripts() {
         if test ! -z "${symlinkfilelist_target}"; then
           echo "ln -f -s "${opt_prefix}${symlinkfilelist_target}" ${absfile}" >> "${post_install_file}"
         fi
-        echo "rm -f ${absfile}" >> ${uninstall_rm_file}
+##        echo "rm -f ${absfile}" >> ${uninstall_rm_file}
     done
 }
 
@@ -99,6 +99,9 @@ _gen_list_of_usr_files() {
 }
 
 
+## removed the pre cleanup file
+##  Pre_rm Script: ${uninstall_rm_file}
+
 _gen_installp_template() {
     cat <<@EOF >"${INSTALLP_TEMPLATE}"
 Package Name: ${SSE_NAME}
@@ -112,7 +115,6 @@ Fileset
   EOUSRLIBLPPFiles
   ROOTLIBLPPFiles
   Post-installation Script: ${post_install_file}
-  Pre_rm Script: ${uninstall_rm_file}
   EOROOTLIBLPPFiles
   Bosboot required: N
   License agreement acceptance required: N
@@ -170,7 +172,7 @@ SSE_VERSION="3.2.0.5"
 INSTALLP_TEMPLATE="${base_dir}/${SSE_NAME}.template"
 
 post_install_file="${wrkdir}/opt/salt/bin/sse_postinstall_i"
-uninstall_rm_file="${wrkdir}/opt/salt/bin/sse_pre_rm"
+## uninstall_rm_file="${wrkdir}/opt/salt/bin/sse_pre_rm"
 
 # global vars
 initialldir=
