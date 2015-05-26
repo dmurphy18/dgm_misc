@@ -110,7 +110,7 @@ infrastructure.
 Summary: REST API for Salt, a parallel remote execution system
 Group:   System administration tools
 Requires: %{name}-master = %{version}-%{release}
-Requires: python-cherrypy
+## Requires: python-cherrypy
 
 %description api
 salt-api provides a REST interface to the Salt master.
@@ -119,7 +119,7 @@ salt-api provides a REST interface to the Salt master.
 Summary: Cloud provisioner for Salt, a parallel remote execution system
 Group:   System administration tools
 Requires: %{name}-master = %{version}-%{release}
-Requires: python-libcloud
+## Requires: python-libcloud
 
 %description cloud
 The salt-cloud tool provisions new cloud VMs, installs salt-minion on them, and

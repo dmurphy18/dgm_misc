@@ -42,13 +42,13 @@ _get_list_of_sym_linked_files() {
 }
 
 
-# AIX installp doesn't handle symlinks, so have to scripts to 
+# AIX installp doesn't handle symlinks, so have to scripts to
 # create symlink'd files post install and removal of fileset
 
 _gen_post_install_remove_scripts() {
 
 ## TODO - cannot have the files with your absolute directory paths
-##          also need to ensure the sse_p* files are copied to  
+##          also need to ensure the sse_p* files are copied to
 ##          mkinstallp build area
 
     echo "#!/usr/bin/ksh" > "${post_install_file}"
@@ -56,6 +56,8 @@ _gen_post_install_remove_scripts() {
 
 ##    echo "#!/usr/bin/ksh" > "${uninstall_rm_file}"
 ##    chmod 755 "${uninstall_rm_file}"
+
+    echo "ln -s /opt/salt/etc/salt /etc/salt" >> "${post_install_file}"
 
     for afile in ${symlinkfilelist}
     do
