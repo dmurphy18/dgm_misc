@@ -321,23 +321,42 @@ _install_pyzmq() {
 
 _build_install_salt() {
 
-  ## build Salt RPMs
   cd "$deps/salt_prereqs" || exit 1
+
+  ## TODO ensuring clean before build
+  rm -fR $freeware/rpmbuild
+  rm -fR salt
+  mkdir -p $freeware/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS} || exit 1
+
+  ## build Salt RPMs
   gzip --decompress --stdout salt-${salt_ver}.tar.gz | tar -xvf - || exit 1
 
   ## TODO remove
-  mv -f sse salt
-  
+  if test ${salt_ver} = "3.2.0"; then
+    mv -f sse salt
+  fi
+
   cd salt
+
+  ## DGM  - due to not picking version correctly
+  ## getting 2015.5.0 instead of 2015.5.1
+  cp ${HOME}/buildtools/_version.py salt/
+
   python setup.py sdist
   cp -f dist/salt-${salt_ver}.tar.gz $freeware/rpmbuild/SOURCES
-  cp -f rpm/pkg/salt-* $freeware/rpmbuild/SOURCES
-  cp -f rpm/pkg/*.salt $freeware/rpmbuild/SOURCES
+  cp -f pkg/rpm/salt-* $freeware/rpmbuild/SOURCES
+  cp -f pkg/rpm/*.salt $freeware/rpmbuild/SOURCES
 
   ## TODO  DGM need to get from github
-  ## cp SaltTesting.2015.2.6.tar.gz $freeware/rpmbuild/SOURCES
+  ## cp SaltTesting-2015.2.6.tar.gz $freeware/rpmbuild/SOURCES
   ## cp salt.spec  from pkg_updates to $freeware/rpmbuild/SPECS
   ## cp skip_tests_3.2.0.patch from pkg_updates to $freeware/rpmbuild/SOURCES
+
+  if test ${salt_ver} = "3.2.0"; then
+    cp "$deps/salt_prereqs/SaltTesting-2015.2.6.tar.gz" $freeware/rpmbuild/SOURCES
+  else
+    cp "$deps/salt_prereqs/SaltTesting-2015.5.8.tar.gz" $freeware/rpmbuild/SOURCES
+  fi
 
   cp -f $deps/salt.spec $freeware/rpmbuild/SPECS
   rpm -bb $freeware/rpmbuild/SPECS/salt.spec
@@ -360,8 +379,10 @@ _build_install_salt() {
 # currently do this from salt_linux_tools or ibm_linux_tools
 
 ## SALT Version and relative version
-salt_ver="3.2.0"
-salt_relver="5"
+## salt_ver="3.2.0"
+## salt_relver="5"
+salt_ver="2015.5.1"
+salt_relver="1"
 
 ## expects dependency has salt_prereqs as sub-dir
 deps=`pwd`
@@ -430,6 +451,4 @@ export PYTHONPATH=$freeware/lib/python2.7:$freeware/lib/python2.7/site-packages
 ## DGM _install_zeromq
 ## DGM _install_pyzmq
 _build_install_salt
-
-
 

@@ -169,8 +169,10 @@ if test ! -d  "${wrkdir}"; then
   mkdir -p "${wrkdir}"
 fi
 
-SSE_NAME="salt-enterprise"
-SSE_VERSION="3.2.0.5"
+## SSE_NAME="salt-enterprise"
+## SSE_VERSION="3.2.0.5"
+SSE_NAME="salt"
+SSE_VERSION="2015.5.1.1"
 INSTALLP_TEMPLATE="${base_dir}/${SSE_NAME}.template"
 
 post_install_file="${wrkdir}/opt/salt/bin/sse_postinstall_i"
