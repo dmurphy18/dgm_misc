@@ -340,7 +340,9 @@ _build_install_salt() {
 
   ## DGM  - due to not picking version correctly
   ## getting 2015.5.0 instead of 2015.5.1
-  cp ${HOME}/buildtools/_version.py salt/
+  if test ${salt_ver} != "3.2.0"; then
+    cp ${HOME}/buildtools/_version.py salt/
+  fi
 
   python setup.py sdist
   cp -f dist/salt-${salt_ver}.tar.gz $freeware/rpmbuild/SOURCES
@@ -348,12 +350,12 @@ _build_install_salt() {
   cp -f pkg/rpm/*.salt $freeware/rpmbuild/SOURCES
 
   ## TODO  DGM need to get from github
-  ## cp SaltTesting-2015.2.6.tar.gz $freeware/rpmbuild/SOURCES
+  ## cp SaltTesting-2015.2.16.tar.gz $freeware/rpmbuild/SOURCES
   ## cp salt.spec  from pkg_updates to $freeware/rpmbuild/SPECS
   ## cp skip_tests_3.2.0.patch from pkg_updates to $freeware/rpmbuild/SOURCES
 
   if test ${salt_ver} = "3.2.0"; then
-    cp "$deps/salt_prereqs/SaltTesting-2015.2.6.tar.gz" $freeware/rpmbuild/SOURCES
+    cp "$deps/salt_prereqs/SaltTesting-2015.2.16.tar.gz" $freeware/rpmbuild/SOURCES
   else
     cp "$deps/salt_prereqs/SaltTesting-2015.5.8.tar.gz" $freeware/rpmbuild/SOURCES
   fi
