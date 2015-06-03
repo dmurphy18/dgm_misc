@@ -27,6 +27,7 @@ _install_needed_opensrc_rpms() {
   ## need to get later gcc and libffi to be able to build python
   ## from perlz
   rpm -ev gcc-locale-4.2.0-3 gcc-4.2.0-3 gcc-c++-4.2.0-3 libgcc-4.2.0-3 libstdc++-4.2.0-3 libstdc++-devel-4.2.0-3
+  rpm -Uivh info-5.1-2.aix5.1.ppc.rpm gmp-5.0.5-1.aix5.1.ppc.rpm gmp-devel-5.0.5-1.aix5.1.ppc.rpm mpfr-3.1.2-1.aix5.1.ppc.rpm mpfr-devel-3.1.2-1.aix5.1.ppc.rpm 
   rpm -ivh gcc-4.8.0-2.aix6.1.ppc.rpm libgcc-4.8.0-2.aix6.1.ppc.rpm gcc-cpp-4.8.0-2.aix6.1.ppc.rpm
   rpm -ivh libstdc++-4.8.0-2.aix6.1.ppc.rpm libstdc++-devel-4.8.0-2.aix6.1.ppc.rpm gcc-c++-4.8.0-2.aix6.1.ppc.rpm
   
@@ -38,18 +39,14 @@ _install_needed_opensrc_rpms() {
 
   ## Salt provided open source rpms (form Perlz)
 
-  SALT_PRELOAD_RPMS="info-5.1-2.aix5.1.ppc.rpm
-  gmp-5.0.5-1.aix5.1.ppc.rpm
-  gmp-devel-5.0.5-1.aix5.1.ppc.rpm
-  libiconv-1.14-2.aix5.1.ppc.rpm
+  SALT_PRELOAD_RPMS="libiconv-1.14-2.aix5.1.ppc.rpm
   libsigsegv-2.6-1.aix5.2.ppc.rpm
+  glib2-2.34.3-1.aix5.1.ppc.rpm
   pkg-config-0.28-1.aix5.1.ppc.rpm
   libffi-3.0.13-1.aix5.1.ppc.rpm
   libffi-devel-3.0.13-1.aix5.1.ppc.rpm
   libyaml-0.1.6-1.aix5.1.ppc.rpm
   libyaml-devel-0.1.6-1.aix5.1.ppc.rpm
-  mpfr-3.1.2-1.aix5.1.ppc.rpm
-  mpfr-devel-3.1.2-1.aix5.1.ppc.rpm
   patch-2.7.3-1.aix5.1.ppc.rpm
   swig-1.3.40-1.aix5.1.ppc.rpm
   libmpc-1.0.1-2.aix5.1.ppc.rpm
@@ -66,9 +63,7 @@ _install_needed_opensrc_rpms() {
   openssl-devel-1.0.1l-1.aix5.1.ppc.rpm
   freetype2-2.5.3-1.aix5.1.ppc.rpm
   fontconfig-2.8.0-2.aix5.1.ppc.rpm
-  glib2-2.34.3-1.aix5.1.ppc.rpm
   unzip-6.0-2.aix5.1.ppc.rpm
-  pkg-config-0.28-1.aix5.1.ppc.rpm
   "
 
   ## cdir=`pwd`
@@ -414,9 +409,9 @@ specfile="python-2.7.5-2.spec"
 
 
 # start the build process
-## DGM _install_needed_opensrc_rpms
-## DGM _build_python
-## DGM _install_python
+_install_needed_opensrc_rpms
+_build_python
+_install_python
 
 
 ## tom's setting from i
@@ -437,20 +432,20 @@ export PYTHONPATH=$freeware/lib/python2.7:$freeware/lib/python2.7/site-packages
 
 ############################# INSTALL SALT DEPS ##############################
 
-## DGM _install_distribute
-## DGM _install_setuptools
-## DGM _install_pyyaml
-## DGM _install_markupSafe
-## DGM _install_msgpack
-## DGM _install_jinja
-## DGM _install_backports
-## DGM _install_libcloud
-## DGM _install_cherrypy
-## DGM _install_request
-## DGM _install_m2crypto
-## DGM _install_pycrypto
-## DGM _install_libsodium
-## DGM _install_zeromq
-## DGM _install_pyzmq
+_install_distribute
+_install_setuptools
+_install_pyyaml
+_install_markupSafe
+_install_msgpack
+_install_jinja
+_install_backports
+_install_libcloud
+_install_cherrypy
+_install_request
+_install_m2crypto
+_install_pycrypto
+_install_libsodium
+_install_zeromq
+_install_pyzmq
 _build_install_salt
 
