@@ -27,7 +27,8 @@ _install_needed_opensrc_rpms() {
   ## need to get later gcc and libffi to be able to build python
   ## from perlz
   rpm -ev gcc-locale-4.2.0-3 gcc-4.2.0-3 gcc-c++-4.2.0-3 libgcc-4.2.0-3 libstdc++-4.2.0-3 libstdc++-devel-4.2.0-3
-  rpm -Uivh info-5.1-2.aix5.1.ppc.rpm gmp-5.0.5-1.aix5.1.ppc.rpm gmp-devel-5.0.5-1.aix5.1.ppc.rpm mpfr-3.1.2-1.aix5.1.ppc.rpm mpfr-devel-3.1.2-1.aix5.1.ppc.rpm 
+  rpm -Uivh info-5.1-2.aix5.1.ppc.rpm gmp-5.0.5-1.aix5.1.ppc.rpm gmp-devel-5.0.5-1.aix5.1.ppc.rpm mpfr-3.1.2-1.aix5.1.ppc.rpm mpfr-devel-3.1.2-1.aix5.1.ppc.rpm libmpc-1.0.1-2.aix5.1.ppc.rpm libmpc-devel-1.0.1-2.aix5.1.ppc.rpm
+  
   rpm -ivh gcc-4.8.0-2.aix6.1.ppc.rpm libgcc-4.8.0-2.aix6.1.ppc.rpm gcc-cpp-4.8.0-2.aix6.1.ppc.rpm
   rpm -ivh libstdc++-4.8.0-2.aix6.1.ppc.rpm libstdc++-devel-4.8.0-2.aix6.1.ppc.rpm gcc-c++-4.8.0-2.aix6.1.ppc.rpm
   
@@ -39,18 +40,17 @@ _install_needed_opensrc_rpms() {
 
   ## Salt provided open source rpms (form Perlz)
 
-  SALT_PRELOAD_RPMS="libiconv-1.14-2.aix5.1.ppc.rpm
+  SALT_PRELOAD_RPMS="
+  libiconv-1.14-2.aix5.1.ppc.rpm
   libsigsegv-2.6-1.aix5.2.ppc.rpm
+  libffi-3.0.13-1.aix5.1.ppc.rpm
   glib2-2.34.3-1.aix5.1.ppc.rpm
   pkg-config-0.28-1.aix5.1.ppc.rpm
-  libffi-3.0.13-1.aix5.1.ppc.rpm
   libffi-devel-3.0.13-1.aix5.1.ppc.rpm
   libyaml-0.1.6-1.aix5.1.ppc.rpm
   libyaml-devel-0.1.6-1.aix5.1.ppc.rpm
   patch-2.7.3-1.aix5.1.ppc.rpm
   swig-1.3.40-1.aix5.1.ppc.rpm
-  libmpc-1.0.1-2.aix5.1.ppc.rpm
-  libmpc-devel-1.0.1-2.aix5.1.ppc.rpm
   readline-6.3-5.aix5.1.ppc.rpm
   readline-devel-6.3-5.aix5.1.ppc.rpm
   bzip2-1.0.5-3.aix5.3.ppc.rpm
