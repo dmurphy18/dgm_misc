@@ -378,7 +378,9 @@ _build_install_salt() {
 ## SALT Version and relative version
 ## salt_ver="3.2.0"
 ## salt_relver="5"
-salt_ver="2015.5.1"
+## salt_ver="2015.5.1"
+## salt_relver="1"
+salt_ver="4.0.2"
 salt_relver="1"
 
 ## expects dependency has salt_prereqs as sub-dir
