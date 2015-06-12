@@ -1,0 +1,868 @@
+#!/usr/bin/bash -x
+
+set -o functrace
+
+set -o pipefail
+
+## using bash for now, not path is for Solaris opencsw
+## run this script as root
+
+SCRIPT_VERSION='2015.02.25.01'
+
+
+## helper functions
+
+_timestamp() {
+    date "+%Y-%m-%d %H:%M:%S:"
+}
+
+_log() {
+    echo "$1" | sed "s/^/$(_timestamp) /" >>"${log_file}"
+}
+
+# Both echo and log
+_display() {
+    echo "$1"
+    _log "$1"
+}
+
+_error() {
+    msg="ERROR: $1"
+    echo "$msg" 1>&2
+    echo "$(_timestamp) $msg" >>"${log_file}"
+    echo "One or more errors found. See ${log_file} for details." 1>&2
+    exit 1
+}
+
+_warning() {
+    msg="WARNING: $1"
+    echo "$msg" 1>&2
+    echo "$(_timestamp) $msg" >>"${log_file}"
+}
+
+_usage() {
+    echo "usage: $0 [--release <ver>] [--arch <i86pc|sparc>]"
+    echo "      build saltstack for 32 -bit solaris 10"
+    echo " "
+}
+
+## work functions
+
+_clean_out_prev_bld() {
+    cd ${HERE}
+    _display "$0:$FUNCNAME clean out previous build products"
+
+    rm -fR /opt/local/lib/python2.7
+    rm -fR ${HERE}
+    mkdir ${HERE}
+}
+
+_install_pkgutil() {
+    cd ${HERE}
+    _display "$0:$FUNCNAME installing base dependencies with pkgutil"
+
+    ## the addition of vim is to allow for a better editing experience
+    pkgutil -y -i python27 python27_dev py_setuptools gcc4core gcc4g++ \
+        gmake libgcc_s1 libyaml_dev libssl_dev libmpfr_dev git cmake libssh2_dev \
+        mysql56_dev mysql56client libtool automake autoconf swig libncurses_dev \
+        berkeleydb48_devel ggettext_dev libncursesw5 libreadline_dev \
+        libsqlite3_dev libgdbm_dev gtar libffi_dev libz_dev curl wget chrpath vim 2>&1 | tee -a $LOGGING
+    _ret=$?
+    if [[ $_ret -ne 0 ]];then
+        _error "$0:$FUNCNAME failed to install utilities with pkgutil, retcode '${_ret}'"
+    fi
+}
+
+_create_patch_files() {
+    _display "$0:$FUNCNAME creating patch files for python setup and requirements.txt"
+
+    cat <<@EOF >${PYTHON_SETUP_PATCH_FILE}
+--- setup.py	Wed Feb 18 16:46:16 2015
++++ setup.py.new	Wed Feb 18 16:45:53 2015
+@@ -787,6 +787,7 @@
+                                libraries=math_libs) )
+         # Detect SSL support for the socket module (via _ssl)
+         search_for_ssl_incs_in = [
++                              '/opt/csw/include',
+                               '/usr/local/ssl/include',
+                               '/usr/contrib/ssl/include/'
+                              ]
+@@ -799,7 +800,8 @@
+             if krb5_h:
+                 ssl_incs += krb5_h
+         ssl_libs = find_library_file(self.compiler, 'ssl',lib_dirs,
+-                                     ['/usr/local/ssl/lib',
++                                     ['/opt/csw/lib',
++                                      '/usr/local/ssl/lib',
+                                       '/usr/contrib/ssl/lib/'
+                                      ] )
+@EOF
+
+    cat <<@EOF >${REQUIREMENTS_PATCH_FILE}
+--- requirements.txt	Wed Feb 18 16:42:58 2015
++++ requirements.txt.new	Wed Feb 18 16:51:13 2015
+@@ -1,4 +1,2 @@
+-GitPython==0.3.2.RC1
+-halite
+ -r ../../../opt_requirements.txt
+ -r ../../../cloud-requirements.txt
+@EOF
+}
+
+_install_build_python() {
+    _display "$0:$FUNCNAME installing and building python ${PYTHON_VER}"
+
+    [[ -d "${HERE}/Python-${PYTHON_VER}" ]] && {
+        rm -fR "${HERE}/Python-${PYTHON_VER}";
+    }
+
+    curl "https://www.python.org/ftp/python/${PYTHON_VER}/Python-${PYTHON_VER}.tgz" | gzcat - | tar -xvf - || {
+        _error "$0:$FUNCNAME failed to download and expand python version ${PYTHON_VER}, retcode '${$?}'";
+    }
+
+    cd "${HERE}/Python-${PYTHON_VER}"
+    patch -N < ${PYTHON_SETUP_PATCH_FILE}
+
+    ### NOTE ###
+    # On both Solaris Sparc and x86 had to patch setup.py so the build process
+    # would find ssl and sqlite3, otherwise _ssl libraries are not built
+
+    # Configure Python with
+    export CFLAGS='-I/opt/csw/include -I/opt/csw/include/ncurses -I/opt/csw/include/openssl -I/opt/csw/include/readline -I/opt/local/include'
+    export LDFLAGS='-L/opt/local/lib -L/opt/csw/lib'
+
+    if [[ ${SYSRELEASE_VER} = ${SYSRELEASE_511} ]];then
+        ## Required GNU development Tools for Oracle Solaris package installed to work
+        ./configure --prefix=/opt/local --enable-ipv6 --target=x86_64-pc-solaris2.1x 2>&1 | tee -a $LOGGING
+    else
+        ./configure --prefix=/opt/local --enable-ipv6  2>&1 | tee -a $LOGGING
+    fi
+    gmake  2>&1 | tee -a $LOGGING || {
+        _error "$0:$FUNCNAME failed to gmake version ${PYTHON_VER}, retcode '${$?}'";
+    }
+
+    gmake install  2>&1 | tee -a $LOGGING || {
+        _error "$0:$FUNCNAME failed to install python version ${PYTHON_VER}, retcode '${$?}'";
+    }
+}
+
+_install_pip() {
+    cd ${HERE}
+    _display "$0:$FUNCNAME installing pip"
+
+    curl -k https://bootstrap.pypa.io/get-pip.py | python - || {
+        _error "$0:$FUNCNAME failed to install python pip, retcode '${$?}'";
+    }
+}
+
+_install_libsodium() {
+    cd ${HERE}
+    _display "$0:$FUNCNAME installing libsodium"
+
+    # Download, build, install libsodium.  Note '--disable-ssp' to get around issue
+    # with gcc on Solaris:
+    # __stack_chk_fail_local
+    # crypto_aead/chacha20poly1305/sodium/.libs/libsodium_la-aead_chacha20poly1305.o  (symbol scope specifies local binding)
+    # ld: fatal: symbol referencing errors. No output written to .libs/libsodium.so.13.0.3
+    [[ -d "libsodium-${SODIUM_VER}" ]] && { rm -fR "libsodium-${SODIUM_VER}"; }
+    curl "http://download.libsodium.org/libsodium/releases/libsodium-${SODIUM_VER}.tar.gz" | gzcat - | tar -xvf - || {
+        _error "$0:$FUNCNAME failed to download and expand libsodium, retcode '${$?}'";
+    }
+
+    cd "libsodium-${SODIUM_VER}"
+
+    export CFLAGS='-I/opt/csw/include -I/opt/csw/include/ncurses -I/opt/csw/include/openssl -I/opt/csw/include/readline -I/opt/local/include'
+    export LDFLAGS='-L/opt/local/lib -L/opt/csw/lib'
+    if [[ ${ARCH} = ${ARCH_x86} ]];then
+        ## getting error similar to sparc with
+        ## ./configure --prefix=/opt/local 2>&1 | tee -a $LOGGING
+        ./configure --prefix=/opt/local --disable-ssp 2>&1 | tee -a $LOGGING
+    elif [[ ${ARCH} = ${ARCH_SPARC} ]];then
+        ./configure --prefix=/opt/local --disable-ssp 2>&1 | tee -a $LOGGING
+    else
+        _error "$0:$FUNCNAME unsupported platform"
+    fi
+
+    gmake 2>&1 | tee -a $LOGGING || {
+        _error "$0:$FUNCNAME failed to build libsodium, retcode '${$?}'";
+    }
+
+    gmake install 2>&1 | tee -a $LOGGING || {
+        _error "$0:$FUNCNAME failed to install libsodium, retcode '${$?}'";
+    }
+
+    gmake check 2>&1 | tee -a $LOGGING || {
+        _warning "$0:$FUNCNAME libsodium check failed"
+    }
+}
+
+_install_cffi() {
+    _display "$0:$FUNCNAME installing cffi"
+
+    cd ${HERE}
+    export CFLAGS='-I/opt/csw/include -I/opt/csw/include/ncurses -I/opt/csw/include/openssl -I/opt/csw/include/readline -I/opt/local/include'
+    export LDFLAGS='-L/opt/local/lib -L/opt/csw/lib -L/opt/csw/lib/ffi'
+    export PKG_CONFIG_PATH=/opt/csw/lib/pkgconfig
+    pip install --egg cffi  2>&1 | tee -a $LOGGING || {
+        _error "$0:$FUNCNAME failed to install cffi, retcode '${$?}'";
+    }
+}
+
+_update_crle() {
+    # Configuration file [version 4]: /var/ld/ld.config
+    #   Platform:     32-bit LSB 80386
+    #   Default Library Path (ELF):   /lib:/usr/lib:/opt/local/lib:/opt/csw/lib
+    #  Trusted Directories (ELF):    /lib/secure:/usr/lib/secure  (system default)
+    #
+    # Command line:
+    #   crle -c /var/ld/ld.config -l /lib:/usr/lib:/opt/local/lib:/opt/csw/lib
+    #
+    # Solaris dynamic linker is controlled by 'crle'
+    # see http://bwachter.lart.info/solaris/solfaq.html
+    #
+    # To add /opt/csw/lib and /opt/local/lib to the default paths, do
+    # don't forget the '-u', otherwise default paths will get wiped out
+    _display "$0:$FUNCNAME updating crle"
+
+    crle  2>&1 | tee -a $LOGGING || {
+        _error "$0:$FUNCNAME failed checking crle existance on Solaris, retcode '${$?}'";
+    }
+
+    crle -c /var/ld/ld.config -u -l /opt/local/lib  2>&1 | tee -a $LOGGING || {
+        _error "$0:$FUNCNAME failed crle updating with /opt/local/lib, retcode '${$?}'";
+    }
+
+    crle -c /var/ld/ld.config -u -l /opt/csw/lib  2>&1 | tee -a $LOGGING || {
+        _error "$0:$FUNCNAME failed crle updating with /opt/csw/lib, retcode '${$?}'";
+    }
+}
+
+_install_build_libgit2() {
+    # Clone libgit2 from GitHub, checkout the v0.21.2 branch.
+    # v0.21.1 and v0.21.2 are the only versions that work with pygit2 0.21.4
+
+    _display "$0:$FUNCNAME installing  and building libgit2"
+
+    # remove CFLAGS and LDFLAGS from env
+    export CFLAGS=
+    export LDFLAGS=
+    export PKG_CONFIG_PATH=
+
+    cd ${HERE}
+    [[ -d libgit2 ]] && { rm -fR libgit2; }
+    git clone https://github.com/libgit2/libgit2 -b v${LIBGIT2_VER}  2>&1 | tee -a $LOGGING || {
+        _error "$0:$FUNCNAME failed to download libgit2 from github , retcode '${$?}'";
+    }
+
+    cd libgit2
+    mkdir build && cd build
+
+    if [[ ${ARCH} = ${ARCH_x86} ]];then
+        cmake .. -DCMAKE_INSTALL_PREFIX=/opt/local -DCMAKE_C_COMPILER=/opt/csw/bin/gcc -DCMAKE_LIBRARY_PATH=/opt/csw/lib 2>&1 | tee -a $LOGGING || {
+            _error "$0:$FUNCNAME failed to build libgit2 for arch ${ARCH}, retcode '${$?}'";
+        }
+
+        cmake --build . --target install  2>&1 | tee -a $LOGGING || {
+            _error "$0:$FUNCNAME failed to build libgit2 and install for arch ${ARCH}, retcode '${$?}'";
+        }
+
+    elif [[ ${ARCH} = ${ARCH_SPARC} ]];then
+        export PKG_CONFIG_PATH=/opt/csw/lib/pkgconfig
+        cmake .. -DCMAKE_INSTALL_PREFIX=/opt/local -DOPENSSL_INCLUDE_DIR=/opt/csw/include/openssl \
+                    -DBUILD_CLAR=off  2>&1 | tee -a $LOGGING || {
+            _error "$0:$FUNCNAME failed to build libgit2 for arch ${ARCH}, retcode '${$?}'";
+        }
+
+        cmake --build . --target install  2>&1 | tee -a $LOGGING || {
+            _error "$0:$FUNCNAME failed to build libgit2 and install for arch ${ARCH}, retcode '${$?}'";
+        }
+
+    else
+        _error "$0:$FUNCNAME unsupported platform"
+    fi
+}
+
+_install_pygit2() {
+    cd ${HERE}
+    _display "$0:$FUNCNAME installing pygit2"
+
+    export CFLAGS='-I/opt/local/include -I/opt/csw/include'
+    export LDFLAGS=
+    export PKG_CONFIG_PATH='/opt/csw/lib/pkgconfig'
+
+#    else
+#    # cffi wants version 0.9.7 of libssl, libcrypt and libcrypto
+#    ln -s /usr/sfw/lib/libssl.so.0.9.7 /opt/csw/lib/libssl.so.0.9.7  2>&1 | tee -a $LOGGING
+#    ln -s /usr/sfw/lib/libcrypt.so.0.9.7 /opt/csw/lib/libcrypt.so.0.9.7  2>&1 | tee -a $LOGGING
+#    ln -s /usr/sfw/lib/libcrypto.so.0.9.7 /opt/csw/lib/libcrypto.so.0.9.7  2>&1 | tee -a $LOGGING
+#    fi
+
+    pip install --egg pygit2==${PYGIT2_COMPAT_VER}  2>&1 | tee -a $LOGGING || {
+        _error "$0:$FUNCNAME pip failed to install pygit2, retcode '${$?}'";
+    }
+}
+
+_install_build_patchelf() {
+    # Retrieve and install patchelf
+    cd ${HERE}
+    _display "$0:$FUNCNAME installing and building patchelf ${PATCHELF_VER}"
+
+    export CFLAGS='-I/opt/local/include -I/opt/csw/include'
+    export LDFLAGS=
+    export PKG_CONFIG_PATH='/opt/csw/lib/pkgconfig'
+
+    [[ -d "patchelf-${PATCHELF_VER}" ]] && { rm -fR "patchelf-${PATCHELF_VER}"; }
+    wget "http://nixos.org/releases/patchelf/patchelf-${PATCHELF_VER}/patchelf-${PATCHELF_VER}.tar.gz"  2>&1 | tee -a $LOGGING || {
+        _error "$0:$FUNCNAME failed to download patchelf-${PATCHELF_VER}, retcode '${$?}'";
+    }
+
+    if [[ ! -f "patchelf-${PATCHELF_VER}.tar.gz" ]];then
+        _error "$0:$FUNCNAME downloaded patchelf-${PATCHELF_VER} but file not found, retcode '${$?}'";
+    fi
+
+    gtar -zxvf "patchelf-${PATCHELF_VER}.tar.gz"
+    cd "patchelf-${PATCHELF_VER}"
+    ./configure --prefix=/opt/local 2>&1 | tee -a $LOGGING
+    gmake || {
+        _error "$0:$FUNCNAME failed to build patchelf-${PATCHELF_VER}, retcode '$?'";
+    }
+
+    gmake install || {
+        _error "$0:$FUNCNAME failed to install patchelf-${PATCHELF_VER}, retcode '$?'";
+    }
+}
+
+_install_build_zeromq() {
+    # Download zeromq 4.0.5 from http://download.zeromq.org/zeromq-4.0.5.tar.gz
+    _display "$0:$FUNCNAME installing and building zermq ${ZMQ_VER}"
+
+    cd ${HERE}
+    export CFLAGS='-I/opt/local/include -I/opt/csw/include'
+    ## DGM export CXXFLAGS='-I/opt/local/include -I/opt/csw/include'
+    ## DGM export LDFLAGS=
+    export LDFLAGS='-L/opt/local/lib -L/opt/csw/lib'
+    export PKG_CONFIG_PATH='/opt/csw/lib/pkgconfig'
+
+    ## TODO use ${PIPESTATUS[@]} to check if there is an error
+    [[ -d "zeromq-${ZMQ_VER}" ]] && { rm -fR "zeromq-${ZMQ_VER}"; }
+    curl "http://download.zeromq.org/zeromq-${ZMQ_VER}.tar.gz" | gzcat - | tar -xvf - || {
+        _error "$0:$FUNCNAME failed to download and install zeromq-${ZMQ_VER} zipped tarball, retcode '${$?}'";
+    }
+
+    cd "zeromq-${ZMQ_VER}"
+    ## ./configure --with-gcc --with-gnu-ld --prefix=/opt/local 2>&1 | tee -a $LOGGING
+    ./configure --with-gcc --with-gnu-ld --prefix=/opt/local --with-libsodium=/opt/local 2>&1 | tee -a $LOGGING || {
+        _error "$0:$FUNCNAME failed to configure zeromq-${ZMQ_VER}, retcode '$?'";
+    }
+
+    gmake || {
+        _error "$0:$FUNCNAME failed to build zeromq-${ZMQ_VER}, retcode '$?'";
+    }
+
+    gmake install || {
+        _error "$0:$FUNCNAME failed to install zeromq-${ZMQ_VER}, retcode '$?'";
+    }
+
+## DGM    gmake check || { _warning "$0:$FUNCNAME check failed for zeromq-${ZMQ_VER}"; }
+}
+
+_install_bbfreeze_esky() {
+    _display "$0:$FUNCNAME installing bbfreeze and esky" 
+
+    cd ${HERE}
+    export CFLAGS='-I/opt/local/include -I/opt/csw/include'
+    export LDFLAGS=
+    export PKG_CONFIG_PATH='/opt/csw/lib/pkgconfig'
+
+    pip install --egg bbfreeze esky || {
+        _error "$0:$FUNCNAME failed to pip install bbfreeze or esky, retcode '${$?}'";
+    }
+
+    # need to allow for updated versions of pyzmq other than default
+    ESKY_VER=$( pip show esky | grep -w ^Version | cut -d ' ' -f 2 )
+    export ESKY_VER
+    _display "$0:$FUNCNAME updated esky version to '${ESKY_VER}'"
+
+    ## COMPILE="gcc -fno-strict-aliasing -O2 -pipe -O2 -DHAVE_DB_185_H -I/usr/include \
+    COMPILE="gcc -m32 -fno-strict-aliasing -O2 -pipe -O2 -DHAVE_DB_185_H -I/usr/include \
+            -I/opt/local/include -I/opt/csw/include -I/opt/csw/include/db4 \
+            -I/opt/csw/include/gettext -I/opt/csw/include/ncurses -DNDEBUG -O2 -pipe -O2 \
+            -DHAVE_DB_185_H -I/usr/include \
+            -I/opt/csw/include/gettext -I/opt/csw/include/ncurses -fPIC \
+            -I/opt/local/include/python2.7 -static-libgcc"
+
+    [[ -d "bbfreeze-loader-${BBFREEZE_LDR_VER}" ]] && {
+        rm -fR "bbfreeze-loader-${BBFREEZE_LDR_VER}";
+    }
+
+    curl -kO "https://pypi.python.org/packages/source/b/bbfreeze-loader/bbfreeze-loader-${BBFREEZE_LDR_VER}.zip" || {
+        _error "$0:$FUNCNAME failed to download 'bbfreeze-loader-${BBFREEZE_LDR_VER}.zip', retcode '${$?}'";
+    }
+
+    if [[ ! -f "bbfreeze-loader-${BBFREEZE_LDR_VER}.zip" ]];then
+        _error "$0:$FUNCNAME download but failed to find 'bbfreeze-loader-${BBFREEZE_LDR_VER}.zip', retcode '${$?}'";
+    fi
+
+    unzip "bbfreeze-loader-${BBFREEZE_LDR_VER}.zip" || {
+        _error "$0:$FUNCNAME had errors unzipping 'bbfreeze-loader-${BBFREEZE_LDR_VER}.zip', retcode '${$?}'";
+    }
+
+    $COMPILE -c bbfreeze-loader-${BBFREEZE_LDR_VER}/_bbfreeze_loader/console.c -o ${HERE}/console.o
+    $COMPILE -c bbfreeze-loader-${BBFREEZE_LDR_VER}/_bbfreeze_loader/getpath.c -o ${HERE}/getpath.o
+    gcc ${HERE}/console.o ${HERE}/getpath.o /opt/local/lib/python2.7/config/libpython2.7.a \
+      -m32 -L/opt/local/lib/python2.7/config -L/opt/csw/lib -lsocket \
+        -lnsl -ldl -lrt -lm -static-libgcc -o ${HERE}/console.exe
+
+      ## -L/opt/local/lib/python2.7/config -L/opt/csw/lib -lsocket \
+
+    chrpath -r /opt/local/lib:/opt/csw/lib /export/home/root/src/console.exe
+    cp ${HERE}/console.exe "/opt/local/lib/python2.7/site-packages/bbfreeze_loader-${BBFREEZE_LDR_VER}-py2.7-${OSRELEASE_DOTTED}-${ARCH}.${BYTEWIDTH}.egg/_bbfreeze_loader/" || {
+        _error "$0:$FUNCNAME problems copying console.exe to egg for _bbfreeze_loader, retcode '${$?}'";
+    }
+}
+
+_install_yaml_etc() {
+    _display "$0:$FUNCNAME installing yaml, jinja2 and other python eggs"
+
+    cd ${HERE}
+    expor CFLAGS='-I/opt/local/include -I/opt/csw/include'
+    export LDFLAGS=
+    export PKG_CONFIG_PATH='/opt/csw/lib/pkgconfig'
+
+    pip install --egg pyyaml jinja2 msgpack_python libnacl raet requests || {
+        _error "$0:$FUNCNAME failed to pip install pyyaml jinja2 msgpack_python libnacl raet requests, retcode '${$?}'";
+    }
+}
+
+_install_pyzmq() {
+    # Note if pyzmq fails below it might be because it can't find the newly
+    # installed zmq for some reason and is building it's own bundled version
+    # Check your CFLAGS and LDFLAGS, and PKG_CONFIG_PATH
+
+    _display "$0:$FUNCNAME installing pyzmq"
+
+    cd ${HERE}
+    export CFLAGS='-I/opt/local/include -I/opt/csw/include'
+    export LDFLAGS=
+    export PKG_CONFIG_PATH='/opt/csw/lib/pkgconfig:/opt/local/lib/pkgconfig'
+
+    pip install --egg pyzmq || {
+        _error "$0:$FUNCNAME failed to pip install pyzmq, retcode '${$?}'";
+    }
+
+    # need to allow for updated versions of pyzmq other than default
+    PYZMQ_VER=$( pip show pyzmq | grep -w ^Version | cut -d ' ' -f 2 )
+    export PYZMQ_VER
+    _display "$0:$FUNCNAME updated pyzmq version to '${PYZMQ_VER}'"
+}
+
+_install_crypto() {
+    _display "$0:$FUNCNAME installing m2crypto pycrypto"
+
+    cd ${HERE}
+    export CFLAGS='-I/opt/local/include -I/opt/csw/include'
+    export LDFLAGS=
+    export PKG_CONFIG_PATH='/opt/csw/lib/pkgconfig:/opt/local/lib/pkgconfig'
+
+    ln -s /opt/csw/include/openssl /opt/local/include/python2.7
+
+    pip install --egg m2crypto || {
+        _error "$0:$FUNCNAME failed to pip install m2crytpo, retcode '${$?}'";
+    }
+
+#    pip install --egg pycrypto || {
+#        _error "$0:$FUNCNAME failed to pip install pycrypto, retcode '${$?}'";
+#    }
+
+    rm -fR  pycrypto-${PYCRYPTO_VER}
+
+    curl "https://pypi.python.org/packages/source/p/pycrypto/pycrypto-${PYCRYPTO_VER}.tar.gz"  | gzcat - | tar -xvf - || {
+        _error "$0:$FUNCNAME failed to download and install 'pycrypto-${PYCRYPTO_VER}.tar.gz', retcode '${$?}'";
+    }
+
+    cd pycrypto-${PYCRYPTO_VER}
+
+    ./configure --without-gmp || {
+        _error "$0:$FUNCNAME failed to configure pycrypto-${PYCRYPTO_VER} , retcode '${$?}'";
+    }
+    python setup.py build || {
+        _error "$0:$FUNCNAME failed to build pycrypto-${PYCRYPTO_VER} , retcode '${$?}'";
+    }
+    python setup.py build install || {
+        "$0:$FUNCNAME failed to build and install pycrypto-${PYCRYPTO_VER} , retcode '${$?}'";
+    }
+}
+
+_install_build_salt() {
+    # clone Salt and get right version
+    _display "$0:$FUNCNAME installing and building salt"
+
+    cd ${HERE}
+    export CFLAGS='-I/opt/local/include -I/opt/csw/include'
+    export LDFLAGS=
+    export PKG_CONFIG_PATH='/opt/csw/lib/pkgconfig:/opt/local/lib/pkgconfig'
+
+    [[ -d salt ]] && { rm -fR salt; }
+    ## git clone https://github.com/saltstack/salt -b v${SALT_VER} || {
+    ## TODO DGM git clone https://github.com/SS-priv/sse.git -b ${SALT_VER} || {
+    git clone https://github.com/SS-priv/sse.git -b "3.2" || {
+        _error "$0:$FUNCNAME failed to git clone salt salt version ${SALT_VER}, retcode '${$?}'";
+    }
+
+#    cp -R /hold_src/salt ${HERE}
+
+    ## TODO DGM this eases the paths below
+    mv ${HERE}/sse ${HERE}/salt
+
+    ## TODO DGM Hard coded value to be replaced
+    cat <<@EOF >${HERE}/salt/salt/_version.py
+from salt.version import SaltStackVersion
+__saltstack_version__ = SaltStackVersion( 3, 2, 0, 0, 0, 0, None )
+@EOF
+
+    if [[ ! -d "${HERE}/salt/pkg/smartos/esky" ]];then
+        _error "$0:$FUNCNAME no directory '${HERE}/salt/pkg/smartos/esky' when cloned salt version ${SALT_VER}, retcode '${_ret}'"
+    fi
+
+    cd ${HERE}/salt/pkg/smartos/esky
+    patch -N < ${REQUIREMENTS_PATCH_FILE}
+
+    pip install --egg -r requirements.txt || {
+        _error "$0:$FUNCNAME pip failed installing requirements.txt in directory '${HERE}/salt/pkg/smartos/esky', retcode '${$?}'";
+    }
+
+    # Run sodium_grabber_installer to make sure libsodium gets packaged
+    # with the esky
+    python sodium_grabber_installer.py install || {
+        _error "$0:$FUNCNAME failed running sodium_grabber_installer to make sure libsodium gets packaged, retcode '${$?}'";
+    }
+
+    ## TODO don't need conditional since fill-in from $VAR, leave for now till cleanup
+    ## cp /opt/local/lib/libzmq.so.4 /opt/local/lib/python2.7/site-packages/pyzmq-14.4.1-py2.7-solaris-2.10-$ARCH.32bit.egg/zmq/
+    if [[ ${ARCH} = ${ARCH_x86} ]];then
+        # ugly workaround for odd zeromq linking breakage Solaris x86
+        cp /opt/local/lib/libzmq.so.4 "/opt/local/lib/python2.7/site-packages/pyzmq-${PYZMQ_VER}-py2.7-${OSRELEASE_DOTTED}-${ARCH_x86}.${BYTEWIDTH}.egg/zmq/"
+
+    elif [[ ${ARCH} = ${ARCH_SPARC} ]];then
+        # Solaris Sparc
+        cp /opt/local/lib/libzmq.so.4 "/opt/local/lib/python2.7/site-packages/pyzmq-${PYZMQ_VER}-py2.7-${OSRELEASE_DOTTED}-${ARCH_SPARC}.${BYTEWIDTH}.egg/zmq/"
+    else
+        _error "$0:$FUNCNAME unsupported platform"
+    fi
+
+    cd ${HERE}/salt
+    python setup.py install && python setup.py sdist && python setup.py bdist && python setup.py bdist_esky
+    _ret=$?
+    if [[ $_ret -ne 0 ]];then
+        _error "$0:$FUNCNAME failure installing salt sdist, bdist or bdist_esky, retcode '${_ret}'"
+    fi
+
+    rm -fR /opt/salt && mkdir /opt/salt && cd /opt/salt
+
+    # TODO - why is there no sparc version here ????
+    ## unzip ${HERE}/salt/dist/salt-${SALT_VER}.solaris-2_10-$ARCH_${BYTEWIDTH}.zip
+    unzip ${HERE}/salt/dist/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH}.zip || {
+        _error "$0:$FUNCNAME failure installing salt sdist, bdist or bdist_esky, retcode '${$?}'";
+    }
+}
+
+_change_run_paths() {
+    _display "$0:$FUNCNAME changing run paths"
+
+    cd ${HERE}
+    # --- WARNING HERE BE DRAGONS ---
+    # This is where I left off in the package creation process
+    # The goal was to use chrpath to ensure that every .so in the Salt package
+    # would look first in the /opt/salt hierarchy for libraries
+    # Otherwise the bbfreez'ed (frozen?) Salt ends up missing some .so's
+    # The rest of this guide is tested, it's just the "DRAGONS" section
+    # that needs some refinement
+    ####
+    # These paths need to change between Solaris x86 and Sparc
+    ## chrpath -r /opt/salt:/opt/salt/salt-${SALT_VER}.solaris-2_10-i86pc_32bit /opt/salt/salt-${SALT_VER}.solaris-2_10-i86pc_32bit/pyzmq-14.4.1-py2.7-solaris-2.10-i86pc.32bit.egg/zmq/libzmq.so.4
+    chrpath -r /opt/salt:/opt/salt/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH} /opt/salt/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH}/pyzmq-${PYZMQ_VER}-py2.7-${OSRELEASE_DOTTED}-${ARCH}.${BYTEWIDTH}.egg/zmq/libzmq.so.4
+
+    ### BIGPATH below is the Esky directory underneath /opt/salta
+    # find /opt/salt -name \*.so -exec chrpath -r /opt/salt:/opt/salt/BIGPATH {} \;
+    # find /opt/salt -name \*.so\.* -exec chrpath -r /opt/salt:/opt/salt/BIGPATH {} \;
+    # find /opt/salt -type f -name salt-\* -exec chrpath -r /opt/salt:/opt/salt/BIGPATH {} \;
+    # --- END DRAGONS ---
+
+    export BIGPATH="/opt/salt/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH}/esky-${ESKY_VER}-py2.7.egg/esky"
+    find /opt/salt -name \*.so -exec chrpath -r /opt/salt:$BIGPATH {} \;
+    find /opt/salt -name \*.so\.* -exec chrpath -r /opt/salt:$BIGPATH {} \;
+    find /opt/salt -type f -name salt-\* -exec chrpath -r /opt/salt:$BIGPATH {} \;
+
+    mkdir /opt/salt/config.dist
+    cp ${HERE}/salt/conf/minion /opt/salt/config.dist
+    cp ${HERE}/salt/pkg/solaris/salt-minion.xml /opt/salt/config.dist
+    cp ${HERE}/salt/pkg/solaris/salt-syndic.xml /opt/salt/config.dist
+
+    ## sed -i 's/\/opt\/local\/bin/\/opt\/salt/' /opt/salt/config.dist/salt-minion.xml
+    ## sed -i 's/\/opt\/local\/bin/\/opt\/salt/' /opt/salt/config.dist/salt-syndic.xml
+    sed -i 's/\/opt\/local\/bin/\/opt\/salt/' /opt/salt/config.dist/salt-minion.xml
+    sed -i 's/\/opt\/local/\/opt\/salt/' /opt/salt/config.dist/salt-syndic.xml
+}
+
+_build_salt_packages() {
+    # Build packages
+    _display "$0:$FUNCNAME building salt packages for ${OSRELEASE} on platform ${ARCH}"
+
+    cd ${HERE}
+    rm -fR /tmp/pkgbuild
+    mkdir -p /tmp/pkgbuild
+    find /opt/salt -print > /tmp/pkgbuild/files
+
+    echo "i pkginfo" > /tmp/pkgbuild/Prototype
+    echo "i postinstall" >> /tmp/pkgbuild/Prototype
+    cat /tmp/pkgbuild/files | pkgproto >> /tmp/pkgbuild/Prototype
+
+
+    # Create pkginfo and postinstall as needed--set correct version number
+    # architecture, etc.
+    PKG_ARCH=
+    PKG_SUFFIX=
+    if [[ ${ARCH} = ${ARCH_x86} ]];then
+        PKG_ARCH='i386'
+        PKG_SUFFIX='x86'
+    elif [[ ${ARCH} = ${ARCH_SPARC} ]];then
+        PKG_ARCH=${ARCH_SPARC}
+        PKG_SUFFIX='sparc'
+    else
+        _error "$0:$FUNCNAME unsupported platform"
+    fi
+
+    CURR_DATE=$(date '+%d%h%Y')
+    cat <<@EOF >"${HERE}/salt/pkg/solaris/pkginfo"
+BASEDIR=/
+RSTATES=S s 1 2 3
+ISTATES=S s 1 2 3
+EMAIL=info@saltstack.com
+PSTAMP=${CURR_DATE}
+VENDOR=SaltStack
+CATEGORY=utility
+CLASSES=none
+ARCH=${PKG_ARCH}
+VERSION=${SALT_VER}
+NAME=Salt Minion, Esky Build
+PKG=salt
+@EOF
+    cp ${HERE}/salt/pkg/solaris/pkginfo /tmp/pkgbuild
+
+    ## note: backticks due to basic shell, no support for $() on Solaris 10
+    ##  place salt first in library path to ensure our packages found first
+    ##  otherwise problems, e.g. importing RSA from M2Crypto
+    cat <<@EOF >"${HERE}/salt/pkg/solaris/postinstall"
+#!/bin/sh
+crle -c /var/ld/ld.config -u -l /opt/salt
+crle -c /var/ld/ld.config -u -l /opt/salt/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH}
+mkdir -p /etc/salt
+cp /opt/salt/config.dist/minion /etc/salt
+svccfg import /opt/salt/config.dist/salt-minion.xml
+svccfg import /opt/salt/config.dist/salt-syndic.xml
+
+echo "Salt Solaris package installation complete."
+echo "Edit your /etc/salt/minion file and then run"
+echo "   # svcadm enable salt-minion"
+@EOF
+    cp "${HERE}/salt/pkg/solaris/postinstall" /tmp/pkgbuild
+
+    cd /tmp/pkgbuild
+    pkgmk -o -r / -d /tmp/pkgbuild -f Prototype || {
+        _error "$0:$FUNCNAME failure making packages for salt on ${OSRELEASE} on platform ${ARCH}, retcode '${$?}'";
+    }
+
+    # once the package is built, clean up files before creating tarball
+    ## rm -f Prototype files postinstall pkginfo
+    ## TBD DGM lets hold onto these so can exmaine them
+    rm -f ${HERE}/Prototype ${HERE}/files ${HERE}/postinstall ${HERE}/pkginfo
+    mv  Prototype ${HERE}/Prototype_lastbld
+    mv  files ${HERE}/files_lastbld
+    mv  postinstall ${HERE}/postinstall_lastbld
+    mv  pkginfo ${HERE}/pkginfo_lastbld
+
+    # tar it up
+    ## tar -czvf "$HERE/salt-${SALT_VER}-solaris-${PKG_SUFFIX}.tar.gz" .
+    ## ensure use Solaris tar rather than gnu, otherwise Longlink errors
+    ## if compress gnu and expand with Solaris
+    rm -f "${HERE}/salt-${SALT_VER}-solaris-${PKG_SUFFIX}.tar"
+    rm -f "${HERE}/salt-${SALT_VER}-solaris-${PKG_SUFFIX}.tar.gz"
+    /usr/sbin/tar -cvf "$HERE/salt-${SALT_VER}-solaris-${PKG_SUFFIX}.tar" .
+    gzip "${HERE}/salt-${SALT_VER}-solaris-${PKG_SUFFIX}.tar"
+
+    _ret=$?
+    if [[ $_ret -ne 0 ]];then
+        _error "$0:$FUNCNAME failure creating gzipped tarball packages for salt on ${OSRELEASE} on platform ${ARCH}, retcode '${_ret}'"
+    fi
+
+    ### on the target system
+    # untar,  this should create a directory called "salt"
+    ## gunzip salt-${SALT_VER}-solaris-${PKG_SUFFIX}.tar.gz
+    ## /usr/bin/tar -xvf salt-${SALT_VER}-solaris-${PKG_SUFFIX}.tar
+    ## pkgadd -d .
+}
+
+#################################### MAIN ####################################
+
+## static definitions
+
+PATH=/opt/local/bin:/opt/csw/bin:/opt/csw/sbin:/opt/csw/gnu:$PATH
+export PATH
+_display "$0: PATH is now set to '$PATH'"
+
+
+if [[ $# -gt 0 ]];then
+    _usage
+    exit 0
+fi
+
+
+# Set some environment variables
+# salt-${SALT_VER}.solaris-2_10-i86pc_32bit
+# salt-${SALT_VER}.solaris-2_10-sun4u_32bit
+
+# Always 32bit right now
+BYTEWIDTH='32bit'
+
+PYTHON_VER='2.7.8'
+SODIUM_VER='1.0.1'
+PATCHELF_VER='0.8'
+ZMQ_VER='4.0.5'
+
+BBFREEZE_LDR_VER='1.1.0'
+ESKY_VER='0.9.8'
+LIBGIT2_VER='0.21.2'
+PYGIT2_COMPAT_VER='0.21.4'  #pygit2 is picky about version compatability with libgit2
+PYCRYPTO_VER='2.6.1'
+
+# varible dependency versions, e.g. pyzmq
+# subject to change when installed usually by --egg
+PYZMQ_VER='14.4.1'
+## PYZMQ_VER='14.5.0'
+
+
+
+## SALT_VER='2014.7.1'
+## SALT_VER='2014.7.2'
+SALT_VER='3.2.0'
+
+ARCH_x86="i86pc"
+ARCH_SPARC="sun4u"
+ARCH=
+
+# OS Release
+# get the OS level for Solaris that we are build on
+SYSRELEASE_VER=$(uname -r)
+SYSRELEASE_511='5.11'   # Solaris 11
+
+OSRELEASE_VER=$( echo ${SYSRELEASE_VER} | cut -d '.' -f2 )
+OSRELEASE_DOTTED="solaris-2.${OSRELEASE_VER}"
+OSRELEASE="solaris-2_${OSRELEASE_VER}"
+
+
+PY_ESKY=salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH}
+HERE=/export/home/root/src
+
+CFLAGS=
+LDFLAGS=
+PKG_CONFIG_PATH=
+
+## logging
+## want verbose while developing
+VERBOSE=1
+LOGGING=
+
+
+PYTHON_SETUP_PATCH_FILE="${HERE}/setup.patch"
+REQUIREMENTS_PATCH_FILE="${HERE}/requirements.patch"
+
+_ret=
+
+
+## main body
+
+#check platform first
+if [[ $(uname -m) = 'i86pc' ]];then
+    ARCH=${ARCH_x86}
+elif [[ $(uname -m) = 'sun4u' ]]; then
+    ARCH=${ARCH_SPARC}
+else
+    _error "$0 does not support this platform"
+fi
+
+#CC=
+##check if building on Solaris 11
+#if [[ ${SYSRELEASE_VER} = ${SYSRELEASE_511} ]];then 
+#    # next to specify CC for 32-bit and gcc
+#    CC='gcc -m32'
+#fi
+## can now export variables
+
+# ensure ww are 32-bit
+CC='gcc -m32'
+export CC
+
+export HERE SALT_VER ARCH BYTEWIDTH OSRELEASE PY_ESKY
+
+if [[ ! -d ${HERE} ]];then
+    mkdir -p ${HERE}
+fi
+cd ${HERE}
+
+_clean_out_prev_bld
+
+log_file_format="${HERE}/$0-${OSRELEASE}-${ARCH}.%Y%m%d%H%M%S.log"
+log_file="`date \"+${log_file_format}\"`"
+
+if [[ ${VERBOSE} -ne 0 ]];then
+    LOGGING="${log_file}"
+else
+    LOGGING="/dev/null"
+fi
+
+# INCREASE THE NUMBER OF FILE HANDLES on the build systema
+INIT_NO_FILES=$(ulimit -n)
+_display "$0 initial number of files limit '${INIT_NO_FILES}'"
+
+if [[ ${INIT_NO_FILES} -lt 4000 ]];then
+    ulimit -n 4000 || {
+        _error "$0 failed to increase number of files limit from '${INIT_NO_FILES}' to 4000";
+    } && {
+        _display "$0 increased number of files limit from '${INIT_NO_FILES}' to 4000";
+    }
+fi
+
+# test if need to install pkutils
+if [[ ! -f "/opt/csw/bin/pkgutil" ]];then
+    pkgadd -d http://get.opencsw.org/now  2>&1 | tee -a $LOGGING
+    _ret=$?
+    if [[ $_ret -ne 0 ]];then
+        _error "$0 failed to install pkgutil, retcode '${_ret}'"
+    fi
+fi
+
+# creating the symbolic link below helps stop weridness
+if [[ ! -d /opt/csw ]];then
+    mkdir -p /opt/csw
+fi
+## ln -s /opt/csw /usr/local
+
+_install_pkgutil
+_create_patch_files
+_install_build_python
+_install_pip
+_install_libsodium
+_install_cffi
+_update_crle
+_install_build_libgit2
+_install_pygit2
+_install_build_patchelf
+_install_build_zeromq
+_install_bbfreeze_esky
+_install_yaml_etc
+_install_pyzmq
+_install_crypto
+_install_build_salt
+_change_run_paths
+_build_salt_packages
+
