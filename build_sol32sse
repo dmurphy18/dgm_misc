@@ -150,7 +150,8 @@ _install_pip() {
     cd ${HERE}
     _display "$0:$FUNCNAME installing pip"
 
-    curl -k https://bootstrap.pypa.io/get-pip.py | python - || {
+    ## DGM curl -k https://bootstrap.pypa.io/get-pip.py | python - || {
+    python -m ensurepip || {
         _error "$0:$FUNCNAME failed to install python pip, retcode '${$?}'";
     }
 }
@@ -257,8 +258,9 @@ _install_build_libgit2() {
     cd libgit2
     mkdir build && cd build
 
+    ## mkdtemp is not available on earlier Solaris 10, CLAR needs it for it's sandbox
     if [[ ${ARCH} = ${ARCH_x86} ]];then
-        cmake .. -DCMAKE_INSTALL_PREFIX=/opt/local -DCMAKE_C_COMPILER=/opt/csw/bin/gcc -DCMAKE_LIBRARY_PATH=/opt/csw/lib 2>&1 | tee -a $LOGGING || {
+        cmake .. -DCMAKE_INSTALL_PREFIX=/opt/local -DCMAKE_C_COMPILER=/opt/csw/bin/gcc -DCMAKE_LIBRARY_PATH=/opt/csw/lib -DBUILD_CLAR=off  2>&1 | tee -a $LOGGING || {
             _error "$0:$FUNCNAME failed to build libgit2 for arch ${ARCH}, retcode '${$?}'";
         }
 
@@ -415,7 +417,12 @@ _install_bbfreeze_esky() {
 
       ## -L/opt/local/lib/python2.7/config -L/opt/csw/lib -lsocket \
 
-    chrpath -r /opt/local/lib:/opt/csw/lib /export/home/root/src/console.exe
+    ## Solaris 10 Upd 8 has issue with maximun size of 12
+    ## work-around is near single letter symbolic links
+    ## chrpath -r /opt/local/lib:/opt/csw/lib /export/home/root/src/console.exe
+    ln -s /opt/local/lib /sll
+    ln -s /opt/csw/lib /slc
+    chrpath -r /sll:/slc /export/home/root/src/console.exe
     cp ${HERE}/console.exe "/opt/local/lib/python2.7/site-packages/bbfreeze_loader-${BBFREEZE_LDR_VER}-py2.7-${OSRELEASE_DOTTED}-${ARCH}.${BYTEWIDTH}.egg/_bbfreeze_loader/" || {
         _error "$0:$FUNCNAME problems copying console.exe to egg for _bbfreeze_loader, retcode '${$?}'";
     }
@@ -580,18 +587,33 @@ _change_run_paths() {
     ####
     # These paths need to change between Solaris x86 and Sparc
     ## chrpath -r /opt/salt:/opt/salt/salt-${SALT_VER}.solaris-2_10-i86pc_32bit /opt/salt/salt-${SALT_VER}.solaris-2_10-i86pc_32bit/pyzmq-14.4.1-py2.7-solaris-2.10-i86pc.32bit.egg/zmq/libzmq.so.4
-    chrpath -r /opt/salt:/opt/salt/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH} /opt/salt/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH}/pyzmq-${PYZMQ_VER}-py2.7-${OSRELEASE_DOTTED}-${ARCH}.${BYTEWIDTH}.egg/zmq/libzmq.so.4
+## DGM     chrpath -r /opt/salt:/opt/salt/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH} /opt/salt/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH}/pyzmq-${PYZMQ_VER}-py2.7-${OSRELEASE_DOTTED}-${ARCH}.${BYTEWIDTH}.egg/zmq/libzmq.so.4
+## DGM 
+## DGM     ### BIGPATH below is the Esky directory underneath /opt/salta
+## DGM     # find /opt/salt -name \*.so -exec chrpath -r /opt/salt:/opt/salt/BIGPATH {} \;
+## DGM     # find /opt/salt -name \*.so\.* -exec chrpath -r /opt/salt:/opt/salt/BIGPATH {} \;
+## DGM     # find /opt/salt -type f -name salt-\* -exec chrpath -r /opt/salt:/opt/salt/BIGPATH {} \;
+## DGM     # --- END DRAGONS ---
+## DGM 
+## DGM     export BIGPATH="/opt/salt/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH}/esky-${ESKY_VER}-py2.7.egg/esky"
+## DGM     find /opt/salt -name \*.so -exec chrpath -r /opt/salt:$BIGPATH {} \;
+## DGM     find /opt/salt -name \*.so\.* -exec chrpath -r /opt/salt:$BIGPATH {} \;
+## DGM     find /opt/salt -type f -name salt-\* -exec chrpath -r /opt/salt:$BIGPATH {} \;
 
-    ### BIGPATH below is the Esky directory underneath /opt/salta
-    # find /opt/salt -name \*.so -exec chrpath -r /opt/salt:/opt/salt/BIGPATH {} \;
-    # find /opt/salt -name \*.so\.* -exec chrpath -r /opt/salt:/opt/salt/BIGPATH {} \;
-    # find /opt/salt -type f -name salt-\* -exec chrpath -r /opt/salt:/opt/salt/BIGPATH {} \;
-    # --- END DRAGONS ---
+    ## there a problem with using chrpath in Solaris Upd 8, as the elf dynamic string table
+    ## can only reduce runpath/rpath sizes.  Later versions of the elf dynamic string table
+    ## have an extra 0x200 bytes to allow for larger runpaths, /usr/include/sys/link.h DT_SUNW_STRPAD
+    ##  hence work-around is to use symbolic links fitting inside existing runpath '/opt/csw/lib:/opt/local/lib'
+    ln -s /opt/salt/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH}  /opt/salt/bpath
+    ln -s /opt/salt/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH}/esky-${ESKY_VER}-py2.7.egg/esky /opt/salt/besky
 
-    export BIGPATH="/opt/salt/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH}/esky-${ESKY_VER}-py2.7.egg/esky"
+    chrpath -r /opt/salt:/opt/salt/bpath /opt/salt/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH}/pyzmq-${PYZMQ_VER}-py2.7-${OSRELEASE_DOTTED}-${ARCH}.${BYTEWIDTH}.egg/zmq/libzmq.so.4
+
+    export BIGPATH=/opt/salt/besky
     find /opt/salt -name \*.so -exec chrpath -r /opt/salt:$BIGPATH {} \;
     find /opt/salt -name \*.so\.* -exec chrpath -r /opt/salt:$BIGPATH {} \;
     find /opt/salt -type f -name salt-\* -exec chrpath -r /opt/salt:$BIGPATH {} \;
+
 
     mkdir /opt/salt/config.dist
     cp ${HERE}/salt/conf/minion /opt/salt/config.dist
@@ -654,8 +676,10 @@ PKG=salt
     ##  otherwise problems, e.g. importing RSA from M2Crypto
     cat <<@EOF >"${HERE}/salt/pkg/solaris/postinstall"
 #!/bin/sh
+ln -s /opt/salt/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH}  /opt/salt/bpath
+ln -s /opt/salt/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH}/esky-${ESKY_VER}-py2.7.egg/esky /opt/salt/besky
 crle -c /var/ld/ld.config -u -l /opt/salt
-crle -c /var/ld/ld.config -u -l /opt/salt/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH}
+crle -c /var/ld/ld.config -u -l /opt/salt/bpath
 mkdir -p /etc/salt
 cp /opt/salt/config.dist/minion /etc/salt
 svccfg import /opt/salt/config.dist/salt-minion.xml
@@ -724,7 +748,8 @@ fi
 # Always 32bit right now
 BYTEWIDTH='32bit'
 
-PYTHON_VER='2.7.8'
+## PYTHON_VER='2.7.8'
+PYTHON_VER='2.7.10'
 SODIUM_VER='1.0.1'
 PATCHELF_VER='0.8'
 ZMQ_VER='4.0.5'
