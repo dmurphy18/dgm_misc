@@ -512,7 +512,7 @@ _install_build_salt() {
     [[ -d salt ]] && { rm -fR salt; }
     ## git clone https://github.com/saltstack/salt -b v${SALT_VER} || {
     ## TODO DGM git clone https://github.com/SS-priv/sse.git -b ${SALT_VER} || {
-    git clone https://github.com/SS-priv/sse.git -b "3.2" || {
+    git clone https://github.com/SS-priv/sse.git -b "v${SALT_VER}" || {
         _error "$0:$FUNCNAME failed to git clone salt salt version ${SALT_VER}, retcode '${$?}'";
     }
 
