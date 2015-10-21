@@ -1,0 +1,7 @@
+[sse-4.1]
+name=SaltStack Enterprise 4.1 Release Channel
+baseurl=https://erepo.saltstack.com/sse/4.1/rhel/$releasever/$basearch
+failovermethod=priority
+enabled=1
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-sse
