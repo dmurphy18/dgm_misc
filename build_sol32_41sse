@@ -734,8 +734,6 @@ ln -s /opt/salt/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH}/libcrypto.so.
 if [ ! -s '/usr/lib/libcrypto.so' ];then
   ln -s /opt/salt/salt-${SALT_VER}.${OSRELEASE}-${ARCH}_${BYTEWIDTH}/libcrypto.so /usr/lib/libcrypto.so
 fi
-## crle -c /var/ld/ld.config -u -l ${OPT_SALT_PATH}
-## crle -c /var/ld/ld.config -u -l ${OPT_SALT_PATH_BINS}
 mkdir -p /opt/local/etc/salt
 cp /opt/salt/config.dist/minion /opt/local/etc/salt
 svccfg import /opt/salt/config.dist/salt-minion.xml
@@ -768,9 +766,14 @@ echo "   # svcadm enable salt-minion"
     rm -f "${HERE}/salt-${SALT_VER}-solaris-${PKG_SUFFIX}.tar"
     rm -f "${HERE}/salt-${SALT_VER}-solaris-${PKG_SUFFIX}.tar.gz"
 
+    rm -f "${HERE}/salt-enterprise-${SALT_VER}-solaris-${PKG_SUFFIX}.tar"
+    rm -f "${HERE}/salt-enterprise-${SALT_VER}-solaris-${PKG_SUFFIX}.tar.gz"
+
     ## /usr/sbin/tar -cvf "$HERE/salt-${SALT_VER}-solaris-${PKG_SUFFIX}.tar" .
-    /usr/sbin/tar -cvf "$HERE/salt-${SALT_VER}-solaris-${PKG_SUFFIX}.tar" .
-    gzip "${HERE}/salt-${SALT_VER}-solaris-${PKG_SUFFIX}.tar"
+    ## /usr/sbin/tar -cvf "$HERE/salt-${SALT_VER}-solaris-${PKG_SUFFIX}.tar" .
+    ## gzip "${HERE}/salt-${SALT_VER}-solaris-${PKG_SUFFIX}.tar"
+    /usr/sbin/tar -cvf "$HERE/salt-enterprise-${SALT_VER}-solaris-${PKG_SUFFIX}.tar" .
+    gzip "${HERE}/salt-enterprise-${SALT_VER}-solaris-${PKG_SUFFIX}.tar"
 
     _ret=$?
     if [[ $_ret -ne 0 ]];then
@@ -779,8 +782,8 @@ echo "   # svcadm enable salt-minion"
 
     ### on the target system
     # untar,  this should create a directory called "salt"
-    ## gunzip salt-${SALT_VER}-solaris-${PKG_SUFFIX}.tar.gz
-    ## /usr/bin/tar -xvf salt-${SALT_VER}-solaris-${PKG_SUFFIX}.tar
+    ## gunzip salt-enterprise-${SALT_VER}-solaris-${PKG_SUFFIX}.tar.gz
+    ## /usr/bin/tar -xvf salt-enterprise-${SALT_VER}-solaris-${PKG_SUFFIX}.tar
     ## pkgadd -d .
 }
 
