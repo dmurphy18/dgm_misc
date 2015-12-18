@@ -1,0 +1,38 @@
+*** ./Lib/ctypes/util.py.ORIG	Mon Dec 14 13:37:52 2015
+--- ./Lib/ctypes/util.py	Mon Dec 14 13:38:40 2015
+***************
+*** 209,214 ****
+--- 209,241 ----
+          def find_library(name, is64 = False):
+              return _get_soname(_findLib_crle(name, is64) or _findLib_gcc(name))
+  
++     elif sys.platform.startswith('aix'):
++ 
++         def _findLib_genkld(name):
++           if not os.path.exists('/usr/bin/genkld'):
++             return None
++ 
++           f = os.popen('env LC_ALL=C /usr/bin/genkld 2>/dev/null')
++           try:
++             data = f.read()
++           finally:
++             f.close()
++           expr = r'\s+(\S+)\s+(\S+)\s+(\S+/libcrypto\.so)$'
++           res = re.search(expr, data, re.M | re.S)
++           if not res:
++             return None
++           return res.group(3)
++ 
++         def _get_saltlibname(name):
++           saltlibfile = os.path.join('/opt/salt/', 'lib%s.so' % name)
++           if not os.path.exists(saltlibfile):
++             return None
++           else:
++             return saltlibfile
++ 
++         def find_library(name):
++           return _findLib_genkld(name)or _get_saltlibname(name)
++ 
+      else:
+  
+          def _findSoname_ldconfig(name):

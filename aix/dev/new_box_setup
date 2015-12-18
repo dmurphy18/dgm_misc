@@ -1,0 +1,107 @@
+## Startup IBM VPN, paasword from PartnerWorld website
+sudo openconnect --no-cert-check --user=u0016499 32.97.185.40
+#input password
+
+## Increase the size of the default sizes
+##
+## l273pp020_pub[/home/u0016499] > df -g
+## Filesystem    GB blocks      Free %Used    Iused %Iused Mounted on
+## /dev/hd4           0.38      0.15   62%    14733    23% /
+## /dev/hd2           4.88      0.49   90%   111258    44% /usr
+## /dev/hd9var        0.25      0.13   49%     7581    18% /var
+## /dev/hd3           0.25      0.24    6%      155     1% /tmp
+## /dev/hd1           0.12      0.12    1%       10     1% /home
+## /dev/hd11admin      0.12      0.12    1%        5     1% /admin
+## /proc                 -         -    -         -     -  /proc
+## /dev/hd10opt       0.62      0.10   85%     8999    28% /opt
+## 192.168.1.11:/stage/middleware    150.00     42.32   72%    83835     1% /stage/middleware
+##
+
+chfs -a size=6G /usr
+chfs -a size=+1G /
+chfs -a size=+7G /home
+chfs -a size=+5G /var
+chfs -a size=+1G /tmp
+chfs -a size=+5G /opt
+
+## bash, easist way use /opt/freeware/bin/bash
+/opt/freeware/bin/bash
+
+## use smit to install from /stage/.../RPMS.ppc
+# vim, rpm, wget, pciutils, grep, curl
+
+# but you need to also load all of the dependencies
+# eg. libc.so, etc. (sucks)
+
+
+# google shared folder MyDrive > ISOs > storage > perlz_ibm_tools
+# download and install these tools, contains a range of rpms
+# e.g vim, uzip, etc
+# then install a decent version of bash, less and perl
+
+rpm -ivh bash-4.3-9.aix5.1.ppc.rpm
+rpm -ivh less-466-1.aix5.1.ppc.rpm
+
+## rpm -ivh libiconv-1.14-2.aix5.1.ppc.rpm
+## rpm -ivh vim-minimal-7.4.460-1.aix5.1.ppc.rpm
+## rpm -ivh vim-common-7.4.460-1.aix5.1.ppc.rpm
+##  failed to install vimit
+#
+
+# copy over the deps from unzip'd deps-2015-12-04.zip
+# to a dev area in home directory named salt_prereqs
+
+
+## now ready to try building build_rev.sh
+# copy over latest salt-2015.8.3.tar.gz, and salt.spec
+# and other from pacgeezer sources e.g. salt-minion.service
+# cannot ignore testing since AIX complains if not present, even if not used.
+# cp these to ~/buildtools/ directory
+
+# to build, run the script, watch out for some errors due to install
+# precedence of freeware rpm's from combo still a work in progress
+# may have to hand hold that
+build_opnsrc_rev.sh
+
+# install the generated rpm's in /opt/freeware/rpmbuild/RPMS/noarch
+
+# now ready to build bff package.
+# mkdir -p prep_rte_area/opt/salt
+# cp -RP /opt/freeware/* ~/prep_rte_area/opt/salt/
+#
+# remove rpmbuild and .info directories
+# clean out any .pyc and .pyo files
+# leaving .py since .pyc & .pyo are superflous
+#
+# cd ~/prep_rte_area/opt/salt && rm -fR rpmbuild
+# find ~/prep_rte_area -name "*.pyc" -print | xargs rm -f
+# find ~/prep_rte_area -name "*.pyo" -print | xargs rm -f
+#
+# Also remove man directories unrelated to salt
+# rm -fR ~/prep_rte_area/opt/salt/man/mann
+# rm -fR ~/prep_rte_area/opt/salt/man/man3
+# rm -fR ~/prep_rte_area/opt/salt/man/man5
+# rm -fR ~/prep_rte_area/opt/salt/man/man8
+# rm -fR ~/prep_rte_area/opt/salt/man/ru*
+# rm -fR ~/prep_rte_area/opt/salt/man/pl*
+# rm -fR ~/prep_rte_area/opt/salt/man/ja*
+# rm -fR ~/prep_rte_area/opt/salt/man/it*
+# rm -fR ~/prep_rte_area/opt/salt/man/fr*
+#
+# now create the wrappers for use of Salt on AIX
+cd ~/prep_rte_area
+../dev/create-wrappers.aix61.sh -y
+
+# remember to remove any log files
+rm -f *.log
+
+# ready to generate the template file to use with mkinstallp
+cd ~
+bash -x ./dev/gen_inst_template 2>&1 | tee ~/mygen
+mv ~/prep_rte_area/salt.template ~/
+
+# the salt.template file to use with mkinstallp should be in ~/prep_rte_area
+# mkinstallp -d <abs path prep directory> -T <abs path to template>
+#
+mkinstallp -d /home/u0016499/prep_rte_area -T /home/u0016499/salt.template 2>&1 | tee ~/myinstlp
+
