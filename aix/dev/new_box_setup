@@ -51,7 +51,6 @@ rpm -ivh less-466-1.aix5.1.ppc.rpm
 # copy over the deps from unzip'd deps-2015-12-04.zip
 # to a dev area in home directory named salt_prereqs
 
-
 ## now ready to try building build_rev.sh
 # copy over latest salt-2015.8.3.tar.gz, and salt.spec
 # and other from pacgeezer sources e.g. salt-minion.service
@@ -66,28 +65,28 @@ build_opnsrc_rev.sh
 # install the generated rpm's in /opt/freeware/rpmbuild/RPMS/noarch
 
 # now ready to build bff package.
-# mkdir -p prep_rte_area/opt/salt
-# cp -RP /opt/freeware/* ~/prep_rte_area/opt/salt/
-#
+mkdir -p prep_rte_area/opt/salt
+cp -RP /opt/freeware/* ~/prep_rte_area/opt/salt/
+
 # remove rpmbuild and .info directories
 # clean out any .pyc and .pyo files
 # leaving .py since .pyc & .pyo are superflous
 #
-# cd ~/prep_rte_area/opt/salt && rm -fR rpmbuild
-# find ~/prep_rte_area -name "*.pyc" -print | xargs rm -f
-# find ~/prep_rte_area -name "*.pyo" -print | xargs rm -f
-#
+cd ~/prep_rte_area/opt/salt && rm -fR rpmbuild
+find ~/prep_rte_area -name "*.pyc" -print | xargs rm -f
+find ~/prep_rte_area -name "*.pyo" -print | xargs rm -f
+
 # Also remove man directories unrelated to salt
-# rm -fR ~/prep_rte_area/opt/salt/man/mann
-# rm -fR ~/prep_rte_area/opt/salt/man/man3
-# rm -fR ~/prep_rte_area/opt/salt/man/man5
-# rm -fR ~/prep_rte_area/opt/salt/man/man8
-# rm -fR ~/prep_rte_area/opt/salt/man/ru*
-# rm -fR ~/prep_rte_area/opt/salt/man/pl*
-# rm -fR ~/prep_rte_area/opt/salt/man/ja*
-# rm -fR ~/prep_rte_area/opt/salt/man/it*
-# rm -fR ~/prep_rte_area/opt/salt/man/fr*
-#
+rm -fR ~/prep_rte_area/opt/salt/man/mann
+rm -fR ~/prep_rte_area/opt/salt/man/man3
+rm -fR ~/prep_rte_area/opt/salt/man/man5
+rm -fR ~/prep_rte_area/opt/salt/man/man8
+rm -fR ~/prep_rte_area/opt/salt/man/ru*
+rm -fR ~/prep_rte_area/opt/salt/man/pl*
+rm -fR ~/prep_rte_area/opt/salt/man/ja*
+rm -fR ~/prep_rte_area/opt/salt/man/it*
+rm -fR ~/prep_rte_area/opt/salt/man/fr*
+
 # now create the wrappers for use of Salt on AIX
 cd ~/prep_rte_area
 ../dev/create-wrappers.aix61.sh -y

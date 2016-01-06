@@ -1,0 +1,247 @@
+Only in b: config.h.in
+diff -c -r a/src/AES.c b/src/AES.c
+*** a/src/AES.c	Mon Oct 14 16:38:10 2013
+--- b/src/AES.c	Tue Feb 24 15:05:58 2015
+***************
+*** 24,32 ****
+   * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+   */
+  
+  #include <assert.h>
+  #include <stdlib.h>
+- #include "Python.h"
+  
+  #define MODULE_NAME _AES
+  #define BLOCK_SIZE 16
+--- 24,32 ----
+   * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+   */
+  
++ #include "Python.h"
+  #include <assert.h>
+  #include <stdlib.h>
+  
+  #define MODULE_NAME _AES
+  #define BLOCK_SIZE 16
+diff -c -r a/src/ARC2.c b/src/ARC2.c
+*** a/src/ARC2.c	Mon Oct 14 16:38:10 2013
+--- b/src/ARC2.c	Tue Feb 24 15:08:07 2015
+***************
+*** 41,48 ****
+   *
+   */
+  
+- #include <string.h>  
+  #include "Python.h"
+  
+  #define MODULE_NAME _ARC2
+  #define BLOCK_SIZE 8
+--- 41,48 ----
+   *
+   */
+  
+  #include "Python.h"
++ #include <string.h>  
+  
+  #define MODULE_NAME _ARC2
+  #define BLOCK_SIZE 8
+diff -c -r a/src/Blowfish.c b/src/Blowfish.c
+*** a/src/Blowfish.c	Mon Oct 14 16:38:10 2013
+--- b/src/Blowfish.c	Tue Feb 24 15:08:28 2015
+***************
+*** 26,31 ****
+--- 26,32 ----
+   * http://www.schneier.com/paper-blowfish-fse.html
+   */
+  
++ #include "Python.h"
+  #include "config.h"
+  #if HAVE_STDINT_H
+  # include <stdint.h>
+***************
+*** 36,42 ****
+  #endif
+  #include <assert.h>
+  #include <string.h>
+- #include "Python.h"
+  
+  #include "Blowfish-tables.h"
+  
+--- 37,42 ----
+diff -c -r a/src/DES.c b/src/DES.c
+*** a/src/DES.c	Mon Oct 14 16:38:10 2013
+--- b/src/DES.c	Tue Feb 24 15:08:52 2015
+***************
+*** 24,29 ****
+--- 24,30 ----
+   * Country of origin: Canada
+   */
+  
++ #include "Python.h"
+  /* Setting this will cause LibTomCrypt to return CRYPT_INVALID_ARG when its
+   * assert-like LTC_ARGCHK macro fails. */
+  #define ARGTYPE 4
+***************
+*** 34,40 ****
+  #undef DES  /* this is needed because tomcrypt_custom.h defines DES to an empty string */
+  
+  #include <assert.h>
+- #include "Python.h"
+  
+  typedef struct {
+      symmetric_key sk;
+--- 35,40 ----
+diff -c -r a/src/MD2.c b/src/MD2.c
+*** a/src/MD2.c	Mon Oct 14 16:38:10 2013
+--- b/src/MD2.c	Tue Feb 24 15:04:16 2015
+***************
+*** 27,34 ****
+   */
+    
+  
+- #include <string.h>
+  #include "Python.h"
+  #include "pycrypto_compat.h"
+  
+  #define MODULE_NAME _MD2
+--- 27,34 ----
+   */
+    
+  
+  #include "Python.h"
++ #include <string.h>
+  #include "pycrypto_compat.h"
+  
+  #define MODULE_NAME _MD2
+diff -c -r a/src/MD4.c b/src/MD4.c
+*** a/src/MD4.c	Mon Oct 14 16:38:10 2013
+--- b/src/MD4.c	Tue Feb 24 15:04:59 2015
+***************
+*** 27,34 ****
+   */
+    
+  
+- #include <string.h>
+  #include "Python.h"
+  #include "pycrypto_compat.h"
+  
+  #define MODULE_NAME _MD4
+--- 27,34 ----
+   */
+    
+  
+  #include "Python.h"
++ #include <string.h>
+  #include "pycrypto_compat.h"
+  
+  #define MODULE_NAME _MD4
+diff -c -r a/src/RIPEMD160.c b/src/RIPEMD160.c
+*** a/src/RIPEMD160.c	Mon Oct 14 16:38:10 2013
+--- b/src/RIPEMD160.c	Tue Feb 24 15:05:35 2015
+***************
+*** 43,48 ****
+--- 43,49 ----
+   *   "RIPEMD-160 is big-bit-endian, little-byte-endian, and left-justified."
+   */
+  
++ #include "Python.h"
+  #include "config.h"
+  #if HAVE_STDINT_H
+  # include <stdint.h>
+***************
+*** 54,60 ****
+  
+  #include <assert.h>
+  #include <string.h>
+- #include "Python.h"
+  #include "pycrypto_compat.h"
+  
+  #define RIPEMD160_DIGEST_SIZE 20
+--- 55,60 ----
+diff -c -r a/src/_counter.c b/src/_counter.c
+*** a/src/_counter.c	Mon Oct 14 16:38:10 2013
+--- b/src/_counter.c	Tue Feb 24 15:09:08 2015
+***************
+*** 22,31 ****
+   * ===================================================================
+   */
+  
+  #include <assert.h>
+  #include <stddef.h>
+  #include <string.h>
+- #include "Python.h"
+  #include "pycrypto_compat.h"
+  #include "_counter.h"
+  
+--- 22,31 ----
+   * ===================================================================
+   */
+  
++ #include "Python.h"
+  #include <assert.h>
+  #include <stddef.h>
+  #include <string.h>
+  #include "pycrypto_compat.h"
+  #include "_counter.h"
+  
+diff -c -r a/src/_fastmath.c b/src/_fastmath.c
+*** a/src/_fastmath.c	Mon Oct 14 16:38:10 2013
+--- b/src/_fastmath.c	Tue Feb 24 15:03:14 2015
+***************
+*** 26,34 ****
+   * $Id$
+   */
+  
+  #include <stdio.h>
+  #include <string.h>
+- #include "Python.h"
+  #include "pycrypto_compat.h"
+  #include <longintrepr.h>				/* for conversions */
+  #include "config.h"
+--- 26,34 ----
+   * $Id$
+   */
+  
++ #include "Python.h"
+  #include <stdio.h>
+  #include <string.h>
+  #include "pycrypto_compat.h"
+  #include <longintrepr.h>				/* for conversions */
+  #include "config.h"
+diff -c -r a/src/config.h.in b/src/config.h.in
+*** a/src/config.h.in	Mon Oct 14 16:38:10 2013
+--- b/src/config.h.in	Tue Feb 24 15:26:52 2015
+***************
+*** 22,28 ****
+  
+  /* Define to 1 if your system has a GNU libc compatible `malloc' function, and
+     to 0 otherwise. */
+! #undef HAVE_MALLOC
+  
+  /* Define to 1 if you have the `memmove' function. */
+  #undef HAVE_MEMMOVE
+--- 22,28 ----
+  
+  /* Define to 1 if your system has a GNU libc compatible `malloc' function, and
+     to 0 otherwise. */
+! #define HAVE_MALLOC 1
+  
+  /* Define to 1 if you have the `memmove' function. */
+  #undef HAVE_MEMMOVE
+***************
+*** 119,125 ****
+  #undef int8_t
+  
+  /* Define to rpl_malloc if the replacement function should be used. */
+! #undef malloc
+  
+  /* Define to `unsigned int' if <sys/types.h> does not define. */
+  #undef size_t
+--- 119,125 ----
+  #undef int8_t
+  
+  /* Define to rpl_malloc if the replacement function should be used. */
+! #undef rpl_malloc
+  
+  /* Define to `unsigned int' if <sys/types.h> does not define. */
+  #undef size_t

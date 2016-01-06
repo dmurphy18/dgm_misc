@@ -155,7 +155,7 @@ _build_python() {
   if ! test -f "$freeware/lib/libffi-3.0.13/include/ffi.h"; then
       mkdir -p $freeware/lib/libffi-3.0.13 || exit 1
       cd $freeware/lib/libffi-3.0.13 || exit 1
-      ln -s ../../include . || exit 1
+      ln -sf ../../include . || exit 1
   fi
 
   # Build Python
@@ -274,6 +274,15 @@ _install_libsodium() {
   ./configure --prefix=$freeware || exit 1
   make || exit 1
   make install || exit 1
+
+  # this produces a libsodium.a, need work-around for libsodium.so
+  sodium_lib='libsodium.so.13'
+  if test -f "./src/libsodium/.libs/$sodium_lib"; then
+    cp "./src/libsodium/.libs/$sodium_lib" "$freeware/lib/$sodium_lib"
+    ln -sf "$freeware/lib/$sodium_lib" "$freeware/lib/libsodium.so"
+  else
+    exit 1
+  fi
 }
 
 _install_zeromq() {
@@ -426,7 +435,7 @@ specfile="python-2.7.5-3.spec"
 
 
 # start the build process
-## DGM _install_needed_opensrc_rpms
+_install_needed_opensrc_rpms
 _build_python
 _install_python
 
