@@ -112,7 +112,7 @@ Update: N
 Fileset
   Fileset Name: ${SALT_NAME}.rte
   Fileset VRMF: ${SALT_VERSION}
-  Fileset Description: SaltStack for AIX
+  Fileset Description: SaltStack Enterprise for AIX
   USRLIBLPPFiles
   EOUSRLIBLPPFiles
   ROOTLIBLPPFiles
