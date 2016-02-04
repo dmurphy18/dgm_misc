@@ -214,7 +214,6 @@ RETVAL=0
 
 start_daemon() {
     echo "Starting $initscript daemon..."
-    LD_LIBRARY_PATH=${install_dir}/lib:${install_dir}/lib64:${ld_path} PYTHONPATH=$pythonpath \$PYTHON \$SCRIPT -d >/dev/null
     LIBPATH=${install_dir}/lib:${install_dir}/lib64:${ld_path} PYTHONPATH=$pythonpath \$PYTHON \$SCRIPT -d >/dev/null
     if expr \$? = 0 >/dev/null; then
         echo OK
@@ -280,7 +279,6 @@ for wrapper in $wrappers; do
     cat <<@EOF >"${orig_cwd}/${executable_dir}/${wrapper}"
 #!/bin/sh
 
-export LD_LIBRARY_PATH=${install_dir}/lib:${install_dir}/lib64:${ld_path}
 export LIBPATH=${install_dir}/lib:${install_dir}/lib64:${ld_path}
 export PYTHONPATH=$pythonpath
 

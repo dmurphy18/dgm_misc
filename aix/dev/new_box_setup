@@ -48,14 +48,16 @@ rpm -ivh less-466-1.aix5.1.ppc.rpm
 ##  failed to install vimit
 #
 
-# copy over the deps from unzip'd deps-2015-12-04.zip
+# copy over the deps from archived area, github/tools_area/aix
 # to a dev area in home directory named salt_prereqs
+# scp -r <:tools:>/aix/salt_prereqs <user>@<ibm_box>:
 
 ## now ready to try building build_rev.sh
-# copy over latest salt-2015.8.3.tar.gz, and salt.spec
+# copy over latest e.g.  salt-2015.8.3.tar.gz, and salt.spec
 # and other from pacgeezer sources e.g. salt-minion.service
 # cannot ignore testing since AIX complains if not present, even if not used.
-# cp these to ~/buildtools/ directory
+# scp -r <:tools:>/aix/buildtools <user>@<ibm_box>:
+# scp -r <:tools:>/aix/dev <user>@<ibm_box>:
 
 # to build, run the script, watch out for some errors due to install
 # precedence of freeware rpm's from combo still a work in progress
@@ -65,7 +67,7 @@ build_opnsrc_rev.sh
 # install the generated rpm's in /opt/freeware/rpmbuild/RPMS/noarch
 
 # now ready to build bff package.
-mkdir -p prep_rte_area/opt/salt
+mkdir -p ~/prep_rte_area/opt/salt
 cp -RP /opt/freeware/* ~/prep_rte_area/opt/salt/
 
 # remove rpmbuild and .info directories

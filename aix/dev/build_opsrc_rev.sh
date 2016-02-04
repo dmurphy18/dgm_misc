@@ -186,6 +186,7 @@ _install_python() {
 
 
 _install_distribute() {
+  cd "$deps/salt_prereqs" || exit 1
   unzip distribute-0.7.3.zip
   cd distribute-0.7.3
   python setup.py install
@@ -353,24 +354,6 @@ _build_install_salt() {
   mkdir -p $freeware/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS} || exit 1
 
   ## build Salt RPMs
-## pull the various *.salt and salt* from rhel7 pacgeezer
-## since this has the correct latest versions for the salt version
-##
-##   gzip --decompress --stdout salt-${salt_ver}.tar.gz | tar -xvf - || exit 1
-##
-##   cd salt
-##
-##   ## DGM  - due to not picking version correctly
-##   ## getting 2015.5.0 instead of 2015.5.1
-##  cp ${HOME}/buildtools/_version.py salt/
-##
-##   python setup.py sdist
-##   cp -f dist/salt-${salt_ver}.tar.gz $freeware/rpmbuild/SOURCES
-##   cp -f pkg/rpm/salt-* $freeware/rpmbuild/SOURCES
-##   cp -f pkg/rpm/*.salt $freeware/rpmbuild/SOURCES
-##
-##  pull spec, and other sources from ${HOME}/buildtools
-
   cp -f ${HOME}/buildtools/salt-${salt_ver}.tar.gz $freeware/rpmbuild/SOURCES
   cp -f ${HOME}/buildtools/salt-* $freeware/rpmbuild/SOURCES
   cp -f ${HOME}/buildtools/salt.* $freeware/rpmbuild/SOURCES
@@ -398,20 +381,14 @@ _build_install_salt() {
 # currently do this from salt_linux_tools or ibm_linux_tools
 
 ## SALT Version and relative version
-## salt_ver="3.2.0"
-## salt_relver="5"
-## salt_ver="2015.5.1"
-## salt_relver="1"
-## salt_ver="4.0.2"
-## salt_relver="1"
-salt_ver="2015.8.3"
+salt_ver="2015.8.5"
 salt_relver="1"
 
 ## expects dependency has salt_prereqs as sub-dir
 deps=`pwd`
 freeware=/opt/freeware
 
-
+##
 # cd to directory containing deps
 if test -n "$1"; then
     cd "$1" || exit 1

@@ -1,65 +1,55 @@
-=================================
-Salt Packages for AIX 6.1 and 7.x
-=================================
+Salt Packages for AIX 6.1 and 7.1
 
-Version: salt.15.8.4.1.bff (2015.8.4)
-Date: 2016-01-26
+New packages have been developed for AIX in the operating system native format
+(that is BFF packages).  The packages have been developed on AIX 6.1 and are
+forward compatible with AIX 7.1. The packages used by Salt are AIX BFF files
+(AIX normal packages, containing salt[-enterprise].rte), the rte extension is
+RunTime Environment.
+
+Two versions of Salt packagers for AIX are available, as follows:
+
+salt-enterprise.3.2.0.5.bff
+salt.15.5.1.1.bff
+salt.15.8.3.1.bff
+
+AIX has limitations as to version information in its packages: it has to be of
+the form: vv.rr.mmmm.ffff OR vv.rr.mmmm.fffff.ppppppppp
+
+Hence dropping of the century, otherwise the following error:
+
+l59fvp018_pub[/home/u0015070] > installp -ld salt.2015.5.1.1.bff
+0503-005 installp:  The format of the toc file is invalid.
+0503-019 installp:  salt 2015.5.1.1 is an invalid level. 
+        ALL levels must be in one of the following formats:  
+                vv.rr.mmmm.ffff OR vv.rr.mmmm.fffff.ppppppppp
+0503-005 installp:  The format of the toc file is invalid.
+
 
 To Install:
------------
-Salt is installed mainly into the /opt/salt directory, and a minimum of 2GBytes
-of disk space is required to install. Wrapper scripts for the command-line
-interfaces are installed in the /usr/bin directory (see the "Usage on AIX"
-section below).
+installp -acXYg -d . salt-enterprise.3.2.0.5.bff salt-enterprise.rte
 
-1. Browse to https://erepo.saltstack.com/aix and download the *.gz installation
-file for your OS version.
+installp -acXYg -d . salt-15.5.1.1.bff salt.rte
 
-2. Run the following command to extract the installation file:
+installp -acXYg -d . salt-15.8.3.1.bff salt.rte
 
-gzip --decompress salt.15.8.4.1.bff.gz
+Example is from the directory where the BFF package file is located.
 
-3. Run the following command to install:
-
-installp -acXYg -d . salt-15.8.4.1.bff salt.rte
-
-To Uninstall:
--------------
-1. Run the following command:
+To remove:
+installp -u salt-enterprise.rte
 
 installp -u salt.rte
 
-Note: If installp fails to uninstall Salt and you intend to install a new
-version, you must uninstall using an alternate method. Otherwise the previous
-package remains in the cache.
+Note, if installp fails due to whatever reason, you still need to uninstall,
+otherwise the bad package is still in the machine's cache.
 
-Usage on AIX
-------------
-Wrapper scripts are provided to access the Salt command-line interfaces. These
-wrapper scripts execute with environmental variable overrides for library and
-python paths. These wrapper scripts are provided in /usr/bin, which is typically
-included in the environmental variable PATH.
+The files are currently available from SaltStack's Enterprise Repo
+(https://erepo.saltstack.com). They must be un-gzipped before installed, this
+is achieved by the following command on the AIX machine:
 
-The following wrapper scripts are available:
+gzip --decompress salt-enterprise.3.2.0.5.bff.gz
 
-  salt-cp
-  salt-cloud
-  salt-call
-  salt-api
-  salt
-  salt-unity
-  salt-syndic
-  salt-ssh
-  salt-run
-  salt-proxy
-  salt-minion
-  salt-master*
-  salt-key
+gzip --decompress salt.15.5.1.1.bff.gz
 
-*salt-master functionality is not currently supported on AIX.
+gzip --decompress salt.15.8.3.1.bff.gz
 
-Salt command line functionality is available through the use of
-these wrapper scripts. For example, to start the salt-minion as a daemon:
-
-[/usr/bin/]salt-minion -d
-
+6.1 and 7.1 versions of the package are identical.

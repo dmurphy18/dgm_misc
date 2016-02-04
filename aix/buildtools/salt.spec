@@ -13,7 +13,7 @@
 
 %define srcname salt
 Name: %{srcname}
-Version: 2015.8.3
+Version: 2015.8.5
 Release: 1%{?dist}
 Summary: A parallel remote execution system
 
@@ -32,6 +32,10 @@ Source8: %{srcname}-minion.service
 Source9: %{srcname}-api.service
 Source10: %{srcname}-common.logrotate
 Source11: %{srcname}.bash
+Source12: %{srcname}-master.environment
+Source13: %{srcname}-syndic.environment
+Source14: %{srcname}-minion.environment
+Source15: %{srcname}-api.environment
 
 ## Patch0:  salt-%{version}-tests.patch
 
@@ -159,7 +163,11 @@ cd $RPM_BUILD_DIR/%{name}-%{version}/%{srcname}-%{version}
 mkdir -p %{buildroot}%{_var}/log/salt
 mkdir -p %{buildroot}%{_var}/cache/salt
 mkdir -p %{buildroot}%{_sysconfdir}/salt
-mkdir -p %{buildroot}%{_sysconfdir}/salt/pki
+mkdir -p %{buildroot}%{_sysconfdir}/salt/master.d
+mkdir -p %{buildroot}%{_sysconfdir}/salt/minion.d
+## mkdir -p %{buildroot}%{_sysconfdir}/salt/pki
+## mkdir -p %{buildroot}%{_sysconfdir}/salt/pki/master
+## mkdir -p %{buildroot}%{_sysconfdir}/salt/pki/minion
 mkdir -p %{buildroot}%{_sysconfdir}/salt/cloud.conf.d
 mkdir -p %{buildroot}%{_sysconfdir}/salt/cloud.deploy.d
 mkdir -p %{buildroot}%{_sysconfdir}/salt/cloud.maps.d
@@ -179,11 +187,26 @@ chmod 0640 %{buildroot}%{_sysconfdir}/salt/cloud
 chmod 0640 %{buildroot}%{_sysconfdir}/salt/roster
 chmod 0640 %{buildroot}%{_sysconfdir}/salt/proxy
 
+# Add the unit files
 mkdir -p %{buildroot}%{_initddir}
 cp -f -p %{SOURCE2} %{buildroot}%{_initddir}/
 cp -f -p %{SOURCE3} %{buildroot}%{_initddir}/
 cp -f -p %{SOURCE4} %{buildroot}%{_initddir}/
 cp -f -p %{SOURCE5} %{buildroot}%{_initddir}/
+chmod 0644 %{buildroot}%{_initddir}/
+chmod 0644 %{buildroot}%{_initddir}/
+chmod 0644 %{buildroot}%{_initddir}/
+chmod 0644 %{buildroot}%{_initddir}/
+# Add the environment files
+mkdir -p %{buildroot}%{_sysconfdir}/default
+cp -f -p %{SOURCE12} %{buildroot}%{_sysconfdir}/default/salt-master
+cp -f -p %{SOURCE13} %{buildroot}%{_sysconfdir}/default/salt-syndic
+cp -f -p %{SOURCE14} %{buildroot}%{_sysconfdir}/default/salt-minion
+cp -f -p %{SOURCE15} %{buildroot}%{_sysconfdir}/default/salt-api
+chmod 0640 %{SOURCE12} %{buildroot}%{_sysconfdir}/default/salt-master
+chmod 0640 %{SOURCE13} %{buildroot}%{_sysconfdir}/default/salt-syndic
+chmod 0640 %{SOURCE14} %{buildroot}%{_sysconfdir}/default/salt-minion
+chmod 0640 %{SOURCE15} %{buildroot}%{_sysconfdir}/default/salt-api
 
 # Logrotate
 mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
@@ -227,6 +250,7 @@ rm -rf %{buildroot}
 %{_var}/log/salt
 %{_bindir}/spm
 %config(noreplace) %{_sysconfdir}/salt/
+## %config(noreplace) %{_sysconfdir}/salt/pki
 
 %files master
 %defattr(-,root,root)
@@ -244,6 +268,8 @@ rm -rf %{buildroot}
 %{_bindir}/salt-unity
 %attr(0755, root, root) %{_initddir}/salt-master
 %config(noreplace) %{_sysconfdir}/salt/master
+%config(noreplace) %{_sysconfdir}/salt/master.d
+## %config(noreplace) %{_sysconfdir}/salt/pki/master
 
 %files minion
 %defattr(-,root,root)
@@ -256,6 +282,8 @@ rm -rf %{buildroot}
 %attr(0755, root, root) %{_initddir}/salt-minion
 %config(noreplace) %{_sysconfdir}/salt/minion
 %config(noreplace) %{_sysconfdir}/salt/proxy
+%config(noreplace) %{_sysconfdir}/salt/minion.d
+## %config(noreplace) %{_sysconfdir}/salt/pki/minion
 
 %files syndic
 %doc %{_mandir}/man1/salt-syndic.1
@@ -342,6 +370,9 @@ rm -rf %{buildroot}
 ## %endif
 
 %changelog
+* Wed Feb  3 2016 SaltStack Packaging Team <packaging@saltstack.com>  2015.8.5-1
+- Feature Release 2015.8.5-1 for AIX
+
 * Mon Dec  7 2015 SaltStack Packaging Team <packaging@saltstack.com>  2015.8.3-1
 - Feature Release 2015.8.3-1 for AIX
 
