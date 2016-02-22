@@ -1,6 +1,6 @@
 #!/usr/bin/bash
 
-SCRIPT_VERSION=2015.05.20.01
+SCRIPT_VERSION=2016.02.19
 
 ## using bash for now to test, needs to be ksh eventuaklly for AIX
 
@@ -77,6 +77,9 @@ _gen_post_install_remove_scripts() {
         fi
 ##        echo "rm -f ${absfile}" >> ${uninstall_rm_file}
     done
+
+    # restore orignal config files, if existed
+##    echo "${restore_conf_pathfile}" >> ${post_install_file}
 }
 
 
@@ -91,7 +94,7 @@ _remove_symlinkd_files() {
 
 # this find/grep will have to be modified for running on AIX
 _gen_list_of_root_files() {
-    root_filelist=$(find . -type f | grep -v '^\./usr' | sed 's/^\.//')
+     root_filelist=$(find . -type f | grep -v '^\./usr' | sed 's/^\.//')
 }
 
 
@@ -100,9 +103,96 @@ _gen_list_of_usr_files() {
     usr_filelist=$(find . -type f | grep '^\./usr' | sed 's/^\.//')
 }
 
+# this find/grep will have to be modified for running on AIX
+_gen_list_of_conf_files() {
+    conf_filelist=$(find . -type f | grep '^\./opt/salt/etc/salt' | sed 's/^\.//')
+}
+
+_gen_conf_files_override_boilerplate() {
+    echo "  owner =" >>"${conf_override_file}"
+    echo "  group =" >>"${conf_override_file}"
+    echo "  mode =" >>"${conf_override_file}"
+    echo "  type =" >>"${conf_override_file}"
+    echo "  class =" >>"${conf_override_file}"
+    echo "  size = VOLATILE" >>"${conf_override_file}"
+    echo "  checksum = VOLATILE" >>"${conf_override_file}"
+    echo "  " >>"${conf_override_file}"
+}
+
+
+_gen_conf_files_override() {
+    for idx in ${conf_filelist}
+    do
+        echo "./${idx}:" >>"${conf_override_file}"
+        _gen_conf_files_override_boilerplate
+##         localname=$(basename ${idx})
+##         echo "./${confsavedir}/${localname}:" >>"${conf_override_file}"
+##         _gen_conf_files_override_boilerplate
+    done
+}
+
+
+## generate a .cfgfiles to tell bff packaging that
+## the config files should be preserved/auto_merged etc.
+## run after _gen_conf_files_override
+
+## _gen_conf_files_preserve() {
+##     for idx in ${conf_filelist}
+##     do
+##         echo "/${idx} auto_merge" >> ${cfgfiles_pathfile}
+##         localname=$(basename ${idx})
+##         echo "/${confsavedir}/${localname} auto_merge" >> ${cfgfiles_pathfile}
+##     done
+## }
+
+
+## _gen_usr_pre_rm_file and run after _gen_conf_files_override
+
+## _gen_usr_pre_rm_file() {
+##     cat <<@EOF >"${usr_pre_rm_wrkfile}"
+## #!/usr/bin/ksh -x
+## 
+## # saves any pre-existing salt configuration files in /opt/salt/etc/salt
+## echo "DGM PRE_RM enter"
+## lconf_filelist='${conf_filelist}'
+## 
+## if [ -d /opt/salt/etc/salt ]
+## then
+##     echo "DGM PRE_RM copy"
+##     mkdir -p ${confsavedir}
+##     for idx in \${lconf_filelist}
+##     do
+##         cp -f \${idx} ${confsavedir}
+##     done
+## fi
+## echo "DGM PRE_RM exit"
+## @EOF
+## }
+
+_gen_restore_conf_files() {
+    cat <<@EOF >"${restore_conf_wrkfile}"
+#!/usr/bin/ksh -x
+
+## echo "DGM restore_conf enter"
+# restores any pre-existing salt configuration files
+# in ${confsavedir} in /opt/salt/etc/salt
+
+if [ -d ${confsavedir} ]
+then
+    mkdir -p /opt/salt/etc/salt
+    for idx in \`ls ${confsavedir}\`
+    do
+        cp  "${confsavedir}/\${idx}" /opt/salt/etc/salt/
+    done
+fi
+## echo "DGM restore_conf exit"
+@EOF
+}
+
 
 ## removed the pre cleanup file
 ##  Pre_rm Script: ${uninstall_rm_file}
+##  Pre_rm Script: ${usr_pre_rm_wrkfile}
 
 _gen_installp_template() {
     cat <<@EOF >"${INSTALLP_TEMPLATE}"
@@ -121,8 +211,8 @@ Fileset
   Bosboot required: N
   License agreement acceptance required: N
   Include license files in this package: N
-  Requisites: 
-  Upsize: / 800000; /usr 100; 
+  Requisites:
+  Upsize: / 90000; /usr 1000;
   USRFiles
 @EOF
 
@@ -144,11 +234,29 @@ Fileset
 
     cat <<@EOF >>"${INSTALLP_TEMPLATE}"
   EOROOTFiles
+  OVERRIDE_INVENTORY: ${conf_override_file}
   Relocatable: N
 EOFileset
 @EOF
 
 }
+
+## # copies salt configuration files in /opt/salt/etc/salt
+## # to usr/salt_archive
+## _copy_conf_files_to_use() {
+## echo "DGM copy conf to usr enter"
+## 
+## if [ -d ${wrkdir}/opt/salt/etc/salt ]
+## then
+##     mkdir -p ${wrkdir}/${confsavedir}
+##     for idx in ${conf_filelist}
+##     do
+##         cp -f ${wrkdir}/${idx} ${wrkdir}/${confsavedir}
+##     done
+## fi
+## echo "DGM copy conf to usr exit"
+## }
+
 
 #################################### MAIN ####################################
 
@@ -158,26 +266,71 @@ log_file_format="${HOME}/gen_inst_template.%Y%m%d%H%M%S.log"
 log_file="`date \"+${log_file_format}\"`"
 
 base_dir="${HOME}/prep_rte_area"
-
-wrkdir="${base_dir}"
-
 if test ! -d  "${base_dir}"; then
   mkdir -p "${base_dir}"
 fi
 
+wrkdir="${base_dir}"
 if test ! -d  "${wrkdir}"; then
   mkdir -p "${wrkdir}"
 fi
 
-post_install_dir="${wrkdir}/opt/salt/bin"
+confsavedir="/usr/salt/salt_archive"
+
+## ## usr_pre_rm_dir="/opt/salt/install"
+## usr_pre_rm_dir="/usr/salt/salt_archive"
+## usr_pre_rm_file="salt_usr_pre_rm"
+## usr_pre_rm_pathfile="${usr_pre_rm_dir}/${usr_pre_rm_file}"
+## usr_pre_rm_wrkdir="${wrkdir}${usr_pre_rm_dir}"
+## if test ! -d  "${usr_pre_rm_wrkdir}"; then
+##   mkdir -p "${usr_pre_rm_wrkdir}"
+## fi
+## usr_pre_rm_wrkfile="${usr_pre_rm_wrkdir}/${usr_pre_rm_file}"
+## 
+## #ensure file exist for scans below
+## touch ${usr_pre_rm_wrkfile}
+## chmod 0755 ${usr_pre_rm_wrkfile}
+
+## restore_conf_dir="/opt/salt/install/"
+## restore_conf_file="salt_restore_conf"
+## restore_conf_pathfile="${restore_conf_dir}/${restore_conf_file}"
+## restore_conf_wrkdir="${wrkdir}${restore_conf_dir}"
+## if test ! -d  "${restore_conf_wrkdir}"; then
+##   mkdir -p "${restore_conf_wrkdir}"
+## fi
+## restore_conf_wrkfile="${restore_conf_wrkdir}/${restore_conf_file}"
+## 
+## #ensure file exist for scans below
+## touch ${restore_conf_wrkfile}
+## chmod 0755 ${restore_conf_wrkfile}
+
+
+## cfgfiles_dir=".info"
+## cfgfiles_file="salt.rte.cfgfiles"
+## cfgfiles_pathfile="${wrkdir}/${cfgfiles_dir}/${cfgfiles_file}"
+## if test ! -d  "${wrkdir}/${cfgfiles_dir}"; then
+##   mkdir -p "${wrkdir}/${cfgfiles_dir}"
+## fi
+## 
+## #ensure file exist for scans below
+## touch ${cfgfiles_pathfile}
+
+
+post_install_dir="${wrkdir}/opt/salt/install"
 if test ! -d  "${post_install_dir}"; then
   mkdir -p "${post_install_dir}"
 fi
 post_install_file="${post_install_dir}/salt_postinstall_i"
+conf_override_file="${post_install_dir}/salt_override.inv"
+
+#ensure file exist for scans below
+touch ${post_install_file}
+chmod 0755 ${post_install_file}
+touch ${conf_override_file}
+
 
 SALT_NAME="salt"
-## SALT_VERSION="2015.8.3.1"
-SALT_VERSION="15.8.5.1"
+SALT_VERSION="15.8.7.1"
 
 INSTALLP_TEMPLATE="${base_dir}/${SALT_NAME}.template"
 ## uninstall_rm_file="${wrkdir}/opt/salt/bin/salt_pre_rm"
@@ -186,6 +339,7 @@ INSTALLP_TEMPLATE="${base_dir}/${SALT_NAME}.template"
 initialldir=
 root_filelist=
 usr_filelist=
+conf_filelist=
 
 #script main body
 
@@ -199,7 +353,19 @@ _gen_post_install_remove_scripts
 _remove_symlinkd_files
 
 # now  create template as syymlink'd files removed
+_gen_list_of_conf_files
+
+# DGM crazy stuff
+## _copy_conf_files_to_use
+
 _gen_list_of_root_files
 _gen_list_of_usr_files
+
+_gen_conf_files_override
+
+## _gen_conf_files_preserve
+## _gen_usr_pre_rm_file
+## _gen_restore_conf_files
+
 _gen_installp_template
 

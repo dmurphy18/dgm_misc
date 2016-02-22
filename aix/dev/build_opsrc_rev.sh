@@ -381,7 +381,7 @@ _build_install_salt() {
 # currently do this from salt_linux_tools or ibm_linux_tools
 
 ## SALT Version and relative version
-salt_ver="2015.8.5"
+salt_ver="2015.8.7"
 salt_relver="1"
 
 ## expects dependency has salt_prereqs as sub-dir
@@ -412,9 +412,9 @@ specfile="python-2.7.5-3.spec"
 
 
 # start the build process
-_install_needed_opensrc_rpms
-_build_python
-_install_python
+## _install_needed_opensrc_rpms
+## _build_python
+## _install_python
 
 
 ## tom's setting from i
@@ -435,23 +435,23 @@ export PYTHONPATH=$freeware/lib/python2.7:$freeware/lib/python2.7/site-packages
 
 ############################# INSTALL SALT DEPS ##############################
 
-_install_distribute
-_install_setuptools
-_install_pyyaml
-_install_markupSafe
-_install_msgpack
-_install_jinja
-_install_backports
-_install_libcloud
-_install_cherrypy
-_install_request
-_install_pycrypto
-_install_libsodium
-_install_zeromq
-_install_pyzmq
-_install_enum34
-_install_tornado
-_install_futures
-_install_timelib
+## _install_distribute
+## _install_setuptools
+## _install_pyyaml
+## _install_markupSafe
+## _install_msgpack
+## _install_jinja
+## _install_backports
+## _install_libcloud
+## _install_cherrypy
+## _install_request
+## _install_pycrypto
+## _install_libsodium
+## _install_zeromq
+## _install_pyzmq
+## _install_enum34
+## _install_tornado
+## _install_futures
+## _install_timelib
 _build_install_salt
 

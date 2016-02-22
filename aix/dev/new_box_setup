@@ -62,7 +62,7 @@ rpm -ivh less-466-1.aix5.1.ppc.rpm
 # to build, run the script, watch out for some errors due to install
 # precedence of freeware rpm's from combo still a work in progress
 # may have to hand hold that
-build_opnsrc_rev.sh
+build_opsrc_rev.sh
 
 # install the generated rpm's in /opt/freeware/rpmbuild/RPMS/noarch
 
@@ -89,11 +89,13 @@ rm -fR ~/prep_rte_area/opt/salt/man/ja*
 rm -fR ~/prep_rte_area/opt/salt/man/it*
 rm -fR ~/prep_rte_area/opt/salt/man/fr*
 
+
 # now create the wrappers for use of Salt on AIX
 cd ~/prep_rte_area
 ../dev/create-wrappers.aix61.sh -y
 
-# remember to remove any log files
+# remember to remove any tmp and log files
+rm -fR ~/prep_rte_area/opt/salt/var/tmp
 rm -f *.log
 
 # ready to generate the template file to use with mkinstallp
@@ -105,4 +107,18 @@ mv ~/prep_rte_area/salt.template ~/
 # mkinstallp -d <abs path prep directory> -T <abs path to template>
 #
 mkinstallp -d /home/u0016499/prep_rte_area -T /home/u0016499/salt.template 2>&1 | tee ~/myinstlp
+
+
+## prepare delivery package
+export salt_ver='2015.8.7.1'
+export salt_pkg="salt_${salt_ver}"
+cd ~
+rm -fR "${salt_pkg}"
+rm -f "${salt_pkg}.tar"
+rm -f "${salt_pkg}.tar.gz"
+mkdir "${salt_pkg}"
+cp ~/dev/install_salt.sh ~/"${salt_pkg}"
+cp ~/prep_rte_area/tmp/salt*.bff ~/"${salt_pkg}"
+tar -cvf ./"${salt_pkg}.tar" ./"${salt_pkg}"
+gzip ./"${salt_pkg}.tar"
 
