@@ -260,7 +260,7 @@ _install_request() {
 _install_pycrypto() {
   ##   ## TODO - DGM can only get it to build in 32-bit mode
   cd "$deps/salt_prereqs" || exit 1
-  mv "$deps/salt_prereqs/pycrypto-2.6.1.patch" "$deps"
+  mv -f "$deps/salt_prereqs/pycrypto-2.6.1.patch" "$deps"
   gzip --decompress --stdout pycrypto-2.6.1.tar.gz | tar -xvf - || exit 1
   cd pycrypto-2.6.1 || exit 1
   # Patch source
@@ -353,9 +353,39 @@ _build_install_salt() {
   rm -fR salt
   mkdir -p $freeware/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS} || exit 1
 
+  ## patch salt tarball for 2015.8.8
+  if [ "${salt_ver}" = "2015.8.8" ]; then
+      cd ${HOME}/buildtools
+      rm -fR salt-${salt_ver}
+
+      ## save original
+      cp -f salt-${salt_ver}.tar.gz salt-${salt_ver}.tar.gz.orig
+
+      ## patch it
+      mv -f "./salt_network.patch" "$deps"
+      gzip --decompress --stdout salt-${salt_ver}.tar.gz | tar -xvf - || exit 1
+      cd salt-${salt_ver}|| exit 1
+      patch -Np1 -i "$deps/salt_network.patch" || exit 1
+      cd ..
+      tar -cvf salt-${salt_ver}.tar salt-${salt_ver}
+      gzip -f salt-${salt_ver}.tar
+
+      ## use patched version
+      cp -f ./salt-${salt_ver}.tar.gz $freeware/rpmbuild/SOURCES
+
+      ## restore original, and remove work-product
+      mv -f salt-${salt_ver}.tar.gz.orig salt-${salt_ver}.tar.gz
+      rm -fR salt-${salt_ver}
+      cd "$deps/salt_prereqs" || exit 1
+  else
+      cp -f ${HOME}/buildtools/salt-${salt_ver}.tar.gz $freeware/rpmbuild/SOURCES
+  fi
+
   ## build Salt RPMs
-  cp -f ${HOME}/buildtools/salt-${salt_ver}.tar.gz $freeware/rpmbuild/SOURCES
-  cp -f ${HOME}/buildtools/salt-* $freeware/rpmbuild/SOURCES
+  cp -f ${HOME}/buildtools/salt-a* $freeware/rpmbuild/SOURCES
+  cp -f ${HOME}/buildtools/salt-c* $freeware/rpmbuild/SOURCES
+  cp -f ${HOME}/buildtools/salt-m* $freeware/rpmbuild/SOURCES
+  cp -f ${HOME}/buildtools/salt-s* $freeware/rpmbuild/SOURCES
   cp -f ${HOME}/buildtools/salt.* $freeware/rpmbuild/SOURCES
   cp -f ${HOME}/buildtools/*.salt $freeware/rpmbuild/SOURCES
   cp -f ${HOME}/buildtools/SaltTesting* $freeware/rpmbuild/SOURCES
@@ -381,7 +411,7 @@ _build_install_salt() {
 # currently do this from salt_linux_tools or ibm_linux_tools
 
 ## SALT Version and relative version
-salt_ver="2015.8.7"
+salt_ver="2015.8.8"
 salt_relver="1"
 
 ## expects dependency has salt_prereqs as sub-dir
