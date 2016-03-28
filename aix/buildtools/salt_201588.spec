@@ -14,7 +14,7 @@
 %define srcname salt
 Name: %{srcname}
 Version: 2015.8.8
-Release: 2%{?dist}
+Release: 1%{?dist}
 Summary: A parallel remote execution system
 
 Group:   System Environment/Daemons
@@ -370,9 +370,6 @@ rm -rf %{buildroot}
 ## %endif
 
 %changelog
-* Fri Mar 25 2016 SaltStack Packaging Team <packaging@saltstack.com>  2015.8.8-2
--  patched fixes for 32117, 32023, 31970, 32135
-
 * Fri Mar 18 2016 SaltStack Packaging Team <packaging@saltstack.com>  2015.8.8-1
 - Feature Release 2015.8.8-1 for AIX
 

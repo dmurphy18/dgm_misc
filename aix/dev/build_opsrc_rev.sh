@@ -354,32 +354,7 @@ _build_install_salt() {
   mkdir -p $freeware/rpmbuild/{BUILD,BUILDROOT,RPMS,SOURCES,SPECS,SRPMS} || exit 1
 
   ## patch salt tarball for 2015.8.8
-  if [ "${salt_ver}" = "2015.8.8" ]; then
-      cd ${HOME}/buildtools
-      rm -fR salt-${salt_ver}
-
-      ## save original
-      cp -f salt-${salt_ver}.tar.gz salt-${salt_ver}.tar.gz.orig
-
-      ## patch it
-      mv -f "./salt_network.patch" "$deps"
-      gzip --decompress --stdout salt-${salt_ver}.tar.gz | tar -xvf - || exit 1
-      cd salt-${salt_ver}|| exit 1
-      patch -Np1 -i "$deps/salt_network.patch" || exit 1
-      cd ..
-      tar -cvf salt-${salt_ver}.tar salt-${salt_ver}
-      gzip -f salt-${salt_ver}.tar
-
-      ## use patched version
-      cp -f ./salt-${salt_ver}.tar.gz $freeware/rpmbuild/SOURCES
-
-      ## restore original, and remove work-product
-      mv -f salt-${salt_ver}.tar.gz.orig salt-${salt_ver}.tar.gz
-      rm -fR salt-${salt_ver}
-      cd "$deps/salt_prereqs" || exit 1
-  else
-      cp -f ${HOME}/buildtools/salt-${salt_ver}.tar.gz $freeware/rpmbuild/SOURCES
-  fi
+  cp -f ${HOME}/buildtools/salt-${salt_ver}.tar.gz $freeware/rpmbuild/SOURCES
 
   ## build Salt RPMs
   cp -f ${HOME}/buildtools/salt-a* $freeware/rpmbuild/SOURCES
@@ -412,7 +387,7 @@ _build_install_salt() {
 
 ## SALT Version and relative version
 salt_ver="2015.8.8"
-salt_relver="1"
+salt_relver="2"
 
 ## expects dependency has salt_prereqs as sub-dir
 deps=`pwd`

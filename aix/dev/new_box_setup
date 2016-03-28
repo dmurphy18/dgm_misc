@@ -110,7 +110,7 @@ mkinstallp -d /home/u0016499/prep_rte_area -T /home/u0016499/salt.template 2>&1 
 
 
 ## prepare delivery package
-export salt_ver='2015.8.8.1'
+export salt_ver='2015.8.8.2'
 export salt_pkg="salt_${salt_ver}"
 cd ~
 rm -fR "${salt_pkg}"
