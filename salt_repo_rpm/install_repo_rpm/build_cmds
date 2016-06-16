@@ -32,3 +32,9 @@ rpmbuild -ba --define "_source_filedigest_algorithm md5" --define "_binary_filed
 rpmbuild -ba --define "_source_filedigest_algorithm md5" --define "_binary_filedigest_algorithm md5" --define "rhel 6" ./SPECS/salt-amzn-repo-latest.spec
 rpmbuild -ba --define "_source_filedigest_algorithm md5" --define "_binary_filedigest_algorithm md5" --define "rhel 6" ./SPECS/salt-amzn-repo-2016.3.spec
 rpmbuild -ba --define "_source_filedigest_algorithm md5" --define "_binary_filedigest_algorithm md5" --define "rhel 6" ./SPECS/salt-amzn-repo-2015.8.spec
+
+
+## SSE 4.2
+rpmbuild -ba --define "_source_filedigest_algorithm md5" --define "_binary_filedigest_algorithm md5" --define "rhel 7" ./SPECS/sse-repo.spec
+rpmbuild -ba --define "_source_filedigest_algorithm md5" --define "_binary_filedigest_algorithm md5" --define "rhel 6" ./SPECS/sse-repo.spec
+rpmbuild -ba --define "_source_filedigest_algorithm md5" --define "_binary_filedigest_algorithm md5" --define "rhel 5" ./SPECS/sse-repo.spec
