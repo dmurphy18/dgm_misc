@@ -107,53 +107,53 @@ _create_patch_files() {
                                       ] )
 @EOF
 
-##     cat <<@EOF > "${MANIFEST_PATCH_FILE}"
-## --- MANIFEST.in Fri Oct 30 06:39:52 2015
-## +++ MANIFEST.in.new     Fri Oct 30 06:49:39 2015
-## @@ -1,10 +1,8 @@
-##  include AUTHORS
-##  include HACKING.rst
-## -include LICENSE
-##  include README.rst
-##  include requirements/base.txt
-##  include requirements/raet.txt
-## -include requirements/cloud.txt
-##  include requirements/zeromq.txt
-##  include tests/*.py
-##  recursive-include tests *
-## @EOF
-## 
-##     cat <<@EOF > "${REQUIREMENTS_PATCH_FILE}"
-## --- requirements.txt    Fri Oct 30 06:39:52 2015
-## +++ requirements.txt.new        Fri Oct 30 06:54:58 2015
-## @@ -1,2 +1,2 @@
-## -GitPython==0.3.2.RC1
-## +-r ../../../requirements/base.txt
-##  -r ../../../requirements/opt.txt
-## @EOF
-## 
-##     cat <<@EOF > "${UTILS_NETWORK_PATCH_FILE}"
-## *** network.py  Tue Mar 22 17:17:57 2016
-## --- network.py.new      Tue Mar 22 18:37:38 2016
-## ***************
-## *** 590,597 ****
-##                       if not salt.utils.is_sunos():
-##                           ipv6scope = mmask6.group(3) or mmask6.group(4)
-##                           addr_obj['scope'] = ipv6scope.lower() if ipv6scope is not None else ipv6scope
-## !                 if addr_obj['address'] != '::' and addr_obj['prefixlen'] != 0:  # SunOS sometimes has ::/0 as inet6 addr when using addrconf
-## !                     data['inet6'].append(addr_obj)
-##           data['up'] = updown
-##           if iface in ret:
-##               # SunOS optimization, where interfaces occur twice in 'ifconfig -a'
-## --- 590,596 ----
-##                       if not salt.utils.is_sunos():
-##                           ipv6scope = mmask6.group(3) or mmask6.group(4)
-##                           addr_obj['scope'] = ipv6scope.lower() if ipv6scope is not None else ipv6scope
-## !                 data['inet6'].append(addr_obj)
-##           data['up'] = updown
-##           if iface in ret:
-##               # SunOS optimization, where interfaces occur twice in 'ifconfig -a
-## @EOF
+    cat <<@EOF > "${MANIFEST_PATCH_FILE}"
+--- MANIFEST.in Fri Oct 30 06:39:52 2015
++++ MANIFEST.in.new     Fri Oct 30 06:49:39 2015
+@@ -1,10 +1,8 @@
+ include AUTHORS
+ include HACKING.rst
+-include LICENSE
+ include README.rst
+ include requirements/base.txt
+ include requirements/raet.txt
+-include requirements/cloud.txt
+ include requirements/zeromq.txt
+ include tests/*.py
+ recursive-include tests *
+@EOF
+
+    cat <<@EOF > "${REQUIREMENTS_PATCH_FILE}"
+--- requirements.txt    Fri Oct 30 06:39:52 2015
++++ requirements.txt.new        Fri Oct 30 06:54:58 2015
+@@ -1,2 +1,2 @@
+-GitPython==0.3.2.RC1
++-r ../../../requirements/base.txt
+ -r ../../../requirements/opt.txt
+@EOF
+
+    cat <<@EOF > "${UTILS_NETWORK_PATCH_FILE}"
+*** network.py  Tue Mar 22 17:17:57 2016
+--- network.py.new      Tue Mar 22 18:37:38 2016
+***************
+*** 590,597 ****
+                      if not salt.utils.is_sunos():
+                          ipv6scope = mmask6.group(3) or mmask6.group(4)
+                          addr_obj['scope'] = ipv6scope.lower() if ipv6scope is not None else ipv6scope
+!                 if addr_obj['address'] != '::' and addr_obj['prefixlen'] != 0:  # SunOS sometimes has ::/0 as inet6 addr when using addrconf
+!                     data['inet6'].append(addr_obj)
+          data['up'] = updown
+          if iface in ret:
+              # SunOS optimization, where interfaces occur twice in 'ifconfig -a'
+--- 590,596 ----
+                      if not salt.utils.is_sunos():
+                          ipv6scope = mmask6.group(3) or mmask6.group(4)
+                          addr_obj['scope'] = ipv6scope.lower() if ipv6scope is not None else ipv6scope
+!                 data['inet6'].append(addr_obj)
+          data['up'] = updown
+          if iface in ret:
+              # SunOS optimization, where interfaces occur twice in 'ifconfig -a
+@EOF
 }
 
 
@@ -621,23 +621,19 @@ _install_build_salt() {
         _error "$0:$FUNCNAME no directory '${HERE}/salt/pkg/smartos/esky' when cloned salt version ${SALT_VER}, retcode '${_ret}'"
     fi
 
-##     cd ${HERE}/salt
-##     ## patch -N < "${MANIFEST_PATCH_FILE}"
-##     patch -N -i "${MANIFEST_PATCH_FILE}" "MANIFEST.in"
-## 
+    cd ${HERE}/salt
+    patch -N < "${MANIFEST_PATCH_FILE}"
 
 ##     cd ${HERE}/salt/salt/utils
 ##     patch -N -i "${UTILS_NETWORK_PATCH_FILE}"
 
-##     cd ${HERE}/salt/pkg/smartos/esky
-##     ## patch -N < "${REQUIREMENTS_PATCH_FILE}"
-##     patch -N -i "${REQUIREMENTS_PATCH_FILE}" "requirements.txt"
-## 
-##     pip install --egg -r requirements.txt || {
-##         _error "$0:$FUNCNAME pip failed installing requirements.txt in directory '${HERE}/salt/pkg/smartos/esky', retcode '${$?}'";
-##     }
-
     cd ${HERE}/salt/pkg/smartos/esky
+    patch -N < "${REQUIREMENTS_PATCH_FILE}"
+
+    pip install --egg -r requirements.txt || {
+        _error "$0:$FUNCNAME pip failed installing requirements.txt in directory '${HERE}/salt/pkg/smartos/esky', retcode '${$?}'";
+    }
+
     # Run sodium_grabber_installer to make sure libsodium gets packaged
     # with the esky
     python sodium_grabber_installer.py install || {
@@ -669,13 +665,13 @@ _install_build_salt() {
 ###        _error "$0:$FUNCNAME failure installing salt sdist, bdist or bdist_esky, retcode '${_ret}'"
 ###    fi
 
-    python setup.py install
+    python setup.py install 
     _ret=$?
     if [[ $_ret -ne 0 ]];then
         _error "$0:$FUNCNAME failure installing salt, retcode '${_ret}'"
     fi
 
-    python setup.py sdist
+    python setup.py sdist 
     _ret=$?
     if [[ $_ret -ne 0 ]];then
         _error "$0:$FUNCNAME failure installing salt sdist, retcode '${_ret}'"
@@ -885,12 +881,9 @@ BYTEWIDTH='32bit'
 
 ## PYTHON_VER='2.7.8'
 PYTHON_VER='2.7.10'
-
 ## SODIUM_VER='1.0.1'
 ## SODIUM_VER='1.0.2'
-## SODIUM_VER='1.0.5'   ## Intel
-SODIUM_VER='1.0.5'      ## Sparc
-
+SODIUM_VER='1.0.5'
 PATCHELF_VER='0.8'
 
 ## ZMQ_VER='4.0.5'
@@ -916,7 +909,7 @@ PYZMQ_VER='14.4.1'
 ## SALT_VER='3.2.0'
 ## SALT_VER='4.1.2'
 ## SALT_VER='4.1.4'
-SALT_VER='4.1.5.2'
+SALT_VER='4.1.5'
 
 ARCH_x86="i86pc"
 ARCH_SPARC="sun4u"
@@ -989,9 +982,9 @@ PKG_CONFIG_PATH=
 
 
 PYTHON_SETUP_PATCH_FILE="${HERE}/setup.patch"
-## MANIFEST_PATCH_FILE="${HERE}/manifest.patch"
-## REQUIREMENTS_PATCH_FILE="${HERE}/requirements.patch"
-## UTILS_NETWORK_PATCH_FILE="${HERE}/utils_network.patch"
+MANIFEST_PATCH_FILE="${HERE}/manifest.patch"
+REQUIREMENTS_PATCH_FILE="${HERE}/requirements.patch"
+UTILS_NETWORK_PATCH_FILE="${HERE}/utils_network.patch"
 
 ## OPT_SALT_PATH='/osl'
 ## OPT_SALT_PATH_BINS='/osbp'
@@ -1054,12 +1047,12 @@ fi
 ## _clean_out_prev_bld
 
 ## _install_pkgutil
-_create_patch_files
-_install_build_python
-_install_pip
-_install_libsodium
-_install_cffi
-_update_crle
+## _create_patch_files
+## _install_build_python
+## _install_pip
+## _install_libsodium
+## _install_cffi
+## _update_crle
 
 ### pygit2 file _utils.py  ln.82 dir_path = dirname(abspath(inspect.getfile(inspect.currentframe())))
 ### is broken since it returns the directory path of where the salt-minion is launched rather
@@ -1068,12 +1061,12 @@ _update_crle
 ### _install_build_libgit2
 ### _install_pygit2
 
-_install_build_patchelf
-_install_build_zeromq
-_install_bbfreeze_esky
-_install_yaml_etc
-_install_pyzmq
-_install_crypto
+## _install_build_patchelf
+## _install_build_zeromq
+## _install_bbfreeze_esky
+## _install_yaml_etc
+## _install_pyzmq
+## _install_crypto
 _install_build_salt
 _hack_for_missing_csw_libs
 _change_run_paths
