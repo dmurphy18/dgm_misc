@@ -43,7 +43,7 @@ salt d8m state.sls pkg.salt.2016_3_3.debian8 pillar='{ "build_dest" : "/srv/debi
 
 salt d8m state.highstate pillar='{ "build_dest" : "/srv/debian/2016.3.3/pkgs" , "build_version" : "2016_3_3" }'
 
-salt d8m state.sls repo.debian.debian8  pillar='{ "build_dest" : "/srv/debian/2016.3.2/pkgs", "keyid" : "DE57BFBE" , "build_version" : "2016_3_3", "gpg_passphrase" : "fill-in here" }'
+salt d8m state.sls repo.debian.debian8  pillar='{ "build_dest" : "/srv/debian/2016.3.3/pkgs", "keyid" : "DE57BFBE" , "build_version" : "2016_3_3", "gpg_passphrase" : "fill-in here" }'
 
 
 ## Raspbian ( Debian 8 )
@@ -82,7 +82,7 @@ salt u14m state.sls repo.ubuntu.ubuntu14  pillar='{ "build_dest" : "/srv/ubuntu/
 
 salt u12m state.sls setup.ubuntu.ubuntu12 pillar='{ "build_dest" : "/srv/ubuntu/2016.3.3/pkgs" , "build_release" : "ubuntu1204" }'
 
-salt u14m state.sls pkg.salt.2016_3_3.ubuntu1204  pillar='{ "build_dest" : "/srv/ubuntu/2016_3_3/pkgs" , "build_release" : "ubuntu1204", "build_version" : "2016_3_3" }'
+salt u12m state.sls pkg.salt.2016_3_3.ubuntu1204  pillar='{ "build_dest" : "/srv/ubuntu/2016_3_3/pkgs" , "build_release" : "ubuntu1204", "build_version" : "2016_3_3" }'
 
 salt u12m state.highstate pillar='{ "build_dest" : "/srv/ubuntu/2016.3.3/pkgs", "build_release" : "ubuntu1204" , "build_version" : "2016_3_3" }'
 
@@ -119,5 +119,5 @@ salt u14m state.sls setup.ubuntu.ubuntu14 pillar='{ "build_dest" : "/srv/sse_pkg
 
 salt u14m state.sls pkg.sse.4_2_3.ubuntu1404  pillar='{ "build_dest" : "/srv/sse_pkgs/ubuntu/4.2.3/pkgs" , "build_release" : "ubuntu1404", "build_version" : "4_2_3" }'
 
-u14m state.sls repo.ubuntu.ubuntu14  pillar='{ "build_dest" : "/srv/sse_pkgs/ubuntu/4.2.3/pkgs", "keyid" : "DE57BFBE" , "build_release" : "ubuntu1404", "build_version" : "4_2_3", "gpg_passphrase" : "fill-in here" }'
+salt u14m state.sls repo.ubuntu.ubuntu14  pillar='{ "build_dest" : "/srv/sse_pkgs/ubuntu/4.2.3/pkgs", "keyid" : "DE57BFBE" , "build_release" : "ubuntu1404", "build_version" : "4_2_3", "gpg_passphrase" : "fill-in here" }'
 
