@@ -1,12 +1,12 @@
 
 ## Fedora 24
 
-salt f24m state.sls setup.redhat.fc24 pillar='{ "build_dest" : "/srv/redhat/2016.3.2/pkgs", "build_release" : "fc24", "build_version" : "2016_3_2" }'
+salt f24m state.sls setup.redhat.fc24 pillar='{ "build_dest" : "/srv/redhat/2016.3.3/pkgs", "build_release" : "fc24", "build_version" : "2016_3_3" }'
 
-salt f24m state.sls pkg.salt.2016_3_2.fc24  pillar='{ "build_dest" : "/srv/redhat/2016.3.2/pkgs", "build_release" : "fc24", "build_version" : "2016_3_2" }'
+salt f24m state.sls pkg.salt.2016_3_3.fc24  pillar='{ "build_dest" : "/srv/redhat/2016.3.3/pkgs", "build_release" : "fc24", "build_version" : "2016_3_3" }'
 
-salt f24m state.highstate  pillar='{ "build_dest" : "/srv/redhat/2016.3.2/pkgs", "build_release" : "fc24", "build_version" : "2016_3_2" }'
+salt f24m state.highstate  pillar='{ "build_dest" : "/srv/redhat/2016.3.3/pkgs", "build_release" : "fc24", "build_version" : "2016_3_3" }'
 
-salt f24m state.sls repo.redhat.fc24  pillar='{ "build_dest" : "/srv/redhat/2016.3.2/pkgs", "keyid" : "DE57BFBE", "build_release" : "fc24", "build_version" : "2016_3_2" , "gpg_passphrase" : "fill-in here" }'
+salt f24m state.sls repo.redhat.fc24  pillar='{ "build_dest" : "/srv/redhat/2016.3.3/pkgs", "keyid" : "DE57BFBE", "build_release" : "fc24", "build_version" : "2016_3_3" , "gpg_passphrase" : "fill-in here" }'
 
 

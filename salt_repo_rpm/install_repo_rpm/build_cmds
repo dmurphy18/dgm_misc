@@ -38,3 +38,8 @@ rpmbuild -ba --define "_source_filedigest_algorithm md5" --define "_binary_filed
 rpmbuild -ba --define "_source_filedigest_algorithm md5" --define "_binary_filedigest_algorithm md5" --define "rhel 7" ./SPECS/sse-repo.spec
 rpmbuild -ba --define "_source_filedigest_algorithm md5" --define "_binary_filedigest_algorithm md5" --define "rhel 6" ./SPECS/sse-repo.spec
 rpmbuild -ba --define "_source_filedigest_algorithm md5" --define "_binary_filedigest_algorithm md5" --define "rhel 5" ./SPECS/sse-repo.spec
+
+
+## Fedora 24
+rpmbuild -ba --define "_source_filedigest_algorithm md5" --define "_binary_filedigest_algorithm md5" --define "fc24" ./SPECS/salt-repo-fedora.spec
+
