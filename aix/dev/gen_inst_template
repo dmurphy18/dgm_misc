@@ -330,7 +330,8 @@ touch ${conf_override_file}
 
 
 SALT_NAME="salt"
-SALT_VERSION="15.8.8.2"
+## keep version 4 digits
+SALT_VERSION="16.3.3.2"
 
 INSTALLP_TEMPLATE="${base_dir}/${SALT_NAME}.template"
 ## uninstall_rm_file="${wrkdir}/opt/salt/bin/salt_pre_rm"

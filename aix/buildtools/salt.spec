@@ -9,11 +9,11 @@
 %{!?python_sitearch: %global python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
 
 %define _salttesting SaltTesting
-%define _salttesting_ver 2015.7.10
+%define _salttesting_ver 2016.9.7
 
 %define srcname salt
 Name: %{srcname}
-Version: 2015.8.8
+Version: 2016.3.3
 Release: 2%{?dist}
 Summary: A parallel remote execution system
 
@@ -32,12 +32,8 @@ Source8: %{srcname}-minion.service
 Source9: %{srcname}-api.service
 Source10: %{srcname}-common.logrotate
 Source11: %{srcname}.bash
-Source12: %{srcname}-master.environment
-Source13: %{srcname}-syndic.environment
-Source14: %{srcname}-minion.environment
-Source15: %{srcname}-api.environment
 
-## Patch0:  salt-%{version}-tests.patch
+Patch0:  salt_network.patch
 
 ## Conflicts: %{srcname}
 
@@ -149,7 +145,7 @@ of an agent (salt-minion) service.
 %setup -T -D -a 1
 
 cd %{srcname}-%{version}
-## %patch0 -p1
+%patch0 -p1
 
 %build
 
@@ -197,16 +193,6 @@ chmod 0644 %{buildroot}%{_initddir}/
 chmod 0644 %{buildroot}%{_initddir}/
 chmod 0644 %{buildroot}%{_initddir}/
 chmod 0644 %{buildroot}%{_initddir}/
-# Add the environment files
-mkdir -p %{buildroot}%{_sysconfdir}/default
-cp -f -p %{SOURCE12} %{buildroot}%{_sysconfdir}/default/salt-master
-cp -f -p %{SOURCE13} %{buildroot}%{_sysconfdir}/default/salt-syndic
-cp -f -p %{SOURCE14} %{buildroot}%{_sysconfdir}/default/salt-minion
-cp -f -p %{SOURCE15} %{buildroot}%{_sysconfdir}/default/salt-api
-chmod 0640 %{SOURCE12} %{buildroot}%{_sysconfdir}/default/salt-master
-chmod 0640 %{SOURCE13} %{buildroot}%{_sysconfdir}/default/salt-syndic
-chmod 0640 %{SOURCE14} %{buildroot}%{_sysconfdir}/default/salt-minion
-chmod 0640 %{SOURCE15} %{buildroot}%{_sysconfdir}/default/salt-api
 
 # Logrotate
 mkdir -p %{buildroot}%{_sysconfdir}/logrotate.d
@@ -235,6 +221,7 @@ cp -R doc/man/salt-api.1* %{buildroot}%{_mandir}/man1/
 cp -R doc/man/salt-cloud.1* %{buildroot}%{_mandir}/man1/
 cp -R doc/man/salt-ssh.1* %{buildroot}%{_mandir}/man1/
 cp -R doc/man/salt-proxy.1* %{buildroot}%{_mandir}/man1/
+cp -R doc/man/spm.1* %{buildroot}%{_mandir}/man1/
 
 
 %clean
@@ -249,6 +236,7 @@ rm -rf %{buildroot}
 %{_var}/cache/salt
 %{_var}/log/salt
 %{_bindir}/spm
+%doc %{_mandir}/man1/spm.1
 %config(noreplace) %{_sysconfdir}/salt/
 ## %config(noreplace) %{_sysconfdir}/salt/pki
 
@@ -312,7 +300,52 @@ rm -rf %{buildroot}
 %{_sysconfdir}/salt/roster
 
 ## TODO DGM need AIX equivalent of below
-## 
+##
+## # less than RHEL 8 / Fedora 16
+## # not sure if RHEL 7 will use systemd yet
+## %if ! (0%{?rhel} >= 7 || 0%{?fedora} >= 15)
+##
+## %preun master
+##   if [ $1 -eq 0 ] ; then
+##       /sbin/service salt-master stop >/dev/null 2>&1
+##       /sbin/chkconfig --del salt-master
+##   fi
+##
+## %preun syndic
+##   if [ $1 -eq 0 ] ; then
+##       /sbin/service salt-syndic stop >/dev/null 2>&1
+##       /sbin/chkconfig --del salt-syndic
+##   fi
+##
+## %preun minion
+##   if [ $1 -eq 0 ] ; then
+##       /sbin/service salt-minion stop >/dev/null 2>&1
+##       /sbin/chkconfig --del salt-minion
+##   fi
+##
+## %post master
+##   /sbin/chkconfig --add salt-master
+##
+## %post minion
+##   /sbin/chkconfig --add salt-minion
+##
+## %postun master
+##   if [ "$1" -ge "1" ] ; then
+##       /sbin/service salt-master condrestart >/dev/null 2>&1 || :
+##   fi
+##
+## #%postun syndic
+## #  if [ "$1" -ge "1" ] ; then
+## #      /sbin/service salt-syndic condrestart >/dev/null 2>&1 || :
+## #  fi
+##
+## %postun minion
+##   if [ "$1" -ge "1" ] ; then
+##       /sbin/service salt-minion condrestart >/dev/null 2>&1 || :
+##   fi
+##
+## %else
+##
 ## %preun master
 ## %if 0%{?systemd_preun:1}
 ##   %systemd_preun salt-master.service
@@ -321,46 +354,61 @@ rm -rf %{buildroot}
 ##     # Package removal, not upgrade
 ##     /bin/systemctl --no-reload disable salt-master.service > /dev/null 2>&1 || :
 ##     /bin/systemctl stop salt-master.service > /dev/null 2>&1 || :
-## 
+##   fi
+## %endif
+##
+## %preun syndic
+## %if 0%{?systemd_preun:1}
+##   %systemd_preun salt-syndic.service
+## %else
+##   if [ $1 -eq 0 ] ; then
+##     # Package removal, not upgrade
 ##     /bin/systemctl --no-reload disable salt-syndic.service > /dev/null 2>&1 || :
 ##     /bin/systemctl stop salt-syndic.service > /dev/null 2>&1 || :
 ##   fi
 ## %endif
-## 
+##
 ## %preun minion
 ## %if 0%{?systemd_preun:1}
 ##   %systemd_preun salt-minion.service
 ## %else
 ##   if [ $1 -eq 0 ] ; then
-##       # Package removal, not upgrade
-##       /bin/systemctl --no-reload disable salt-minion.service > /dev/null 2>&1 || :
-##       /bin/systemctl stop salt-minion.service > /dev/null 2>&1 || :
+##     # Package removal, not upgrade
+##     /bin/systemctl --no-reload disable salt-minion.service > /dev/null 2>&1 || :
+##     /bin/systemctl stop salt-minion.service > /dev/null 2>&1 || :
 ##   fi
 ## %endif
-## 
+##
 ## %post master
 ## %if 0%{?systemd_post:1}
 ##   %systemd_post salt-master.service
 ## %else
 ##   /bin/systemctl daemon-reload &>/dev/null || :
 ## %endif
-## 
+##
 ## %post minion
 ## %if 0%{?systemd_post:1}
 ##   %systemd_post salt-minion.service
 ## %else
 ##   /bin/systemctl daemon-reload &>/dev/null || :
 ## %endif
-## 
+##
 ## %postun master
 ## %if 0%{?systemd_post:1}
 ##   %systemd_postun salt-master.service
 ## %else
 ##   /bin/systemctl daemon-reload &>/dev/null
 ##   [ $1 -gt 0 ] && /bin/systemctl try-restart salt-master.service &>/dev/null || :
+## %endif
+##
+## %postun syndic
+## %if 0%{?systemd_post:1}
+##   %systemd_postun salt-syndic.service
+## %else
+##   /bin/systemctl daemon-reload &>/dev/null
 ##   [ $1 -gt 0 ] && /bin/systemctl try-restart salt-syndic.service &>/dev/null || :
 ## %endif
-## 
+##
 ## %postun minion
 ## %if 0%{?systemd_post:1}
 ##   %systemd_postun salt-minion.service
@@ -368,8 +416,14 @@ rm -rf %{buildroot}
 ##   /bin/systemctl daemon-reload &>/dev/null
 ##   [ $1 -gt 0 ] && /bin/systemctl try-restart salt-minion.service &>/dev/null || :
 ## %endif
+##
+## %endif
+
 
 %changelog
+* Mon Sep 12 2016 SaltStack Packaging Team <packaging@saltstack.com>  2016.3.3-2
+- Feature Release 2016.3.3-2 for AIX
+
 * Fri Mar 25 2016 SaltStack Packaging Team <packaging@saltstack.com>  2015.8.8-2
 -  patched fixes for 32117, 32023, 31970, 32135
 

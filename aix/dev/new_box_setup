@@ -19,8 +19,8 @@ sudo openconnect --no-cert-check --user=u0016499 32.97.185.40
 
 chfs -a size=6G /usr
 chfs -a size=+1G /
-chfs -a size=+7G /home
-chfs -a size=+5G /var
+chfs -a size=+6G /home
+chfs -a size=+4G /var
 chfs -a size=+1G /tmp
 chfs -a size=+5G /opt
 
@@ -65,6 +65,9 @@ rpm -ivh less-466-1.aix5.1.ppc.rpm
 build_opsrc_rev.sh
 
 # install the generated rpm's in /opt/freeware/rpmbuild/RPMS/noarch
+## cd /opt/freeware/rpmbuild/RPMS/noarch
+## rpm -ivh salt-2016.3.3-2.aix6.1.noarch.rpm salt-api-2016.3.3-2.aix6.1.noarch.rpm salt-cloud-2016.3.3-2.aix6.1.noarch.rpm salt-master-2016.3.3-2.aix6.1.noarch.rpm salt-minion-2016.3.3-2.aix6.1.noarch.rpm salt-ssh-2016.3.3-2.aix6.1.noarch.rpm salt-syndic-2016.3.3-2.aix6.1.noarch.rpm
+## cd -
 
 # now ready to build bff package.
 mkdir -p ~/prep_rte_area/opt/salt
@@ -110,7 +113,7 @@ mkinstallp -d /home/u0016499/prep_rte_area -T /home/u0016499/salt.template 2>&1 
 
 
 ## prepare delivery package
-export salt_ver='2015.8.8.2'
+export salt_ver='2016.3.3'
 export salt_pkg="salt_${salt_ver}"
 cd ~
 rm -fR "${salt_pkg}"

@@ -159,7 +159,7 @@ _build_python() {
   fi
 
   # Build Python
-  rpm -bb $freeware/rpmbuild/SPECS/$specfile || exit 1
+##  rpm -bb $freeware/rpmbuild/SPECS/$specfile || exit 1
 
 }
 
@@ -363,6 +363,7 @@ _build_install_salt() {
   cp -f ${HOME}/buildtools/salt-s* $freeware/rpmbuild/SOURCES
   cp -f ${HOME}/buildtools/salt.* $freeware/rpmbuild/SOURCES
   cp -f ${HOME}/buildtools/*.salt $freeware/rpmbuild/SOURCES
+  cp -f ${HOME}/buildtools/salt_network.patch $freeware/rpmbuild/SOURCES
   cp -f ${HOME}/buildtools/SaltTesting* $freeware/rpmbuild/SOURCES
 
   cp -f ${HOME}/buildtools/salt.spec $freeware/rpmbuild/SPECS
@@ -386,7 +387,7 @@ _build_install_salt() {
 # currently do this from salt_linux_tools or ibm_linux_tools
 
 ## SALT Version and relative version
-salt_ver="2015.8.8"
+salt_ver="2016.3.3"
 salt_relver="2"
 
 ## expects dependency has salt_prereqs as sub-dir
