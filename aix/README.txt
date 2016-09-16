@@ -2,8 +2,8 @@
 Salt Packages for AIX 6.1 and 7.x
 =================================
 
-Version: salt.15.8.8.1.bff (2015.8.8)
-Date: 2016-03-22
+Version: salt.16.3.3.2.bff (2016.3.3)
+Date: 2016-09-16
 
 To Install:
 -----------
@@ -17,9 +17,9 @@ file for your OS version.
 
 2. Run the following commands to extract the installation file into a directory:
 
-gzip --decompress salt_2015.8.8.1.tar.gz
-tar -xvf salt_2015.8.8.1.tar
-cd salt_2015.8.8.1
+gzip --decompress salt_2016.3.3.tar.gz
+tar -xvf salt_2016.3.3.tar
+cd salt_2016.3.3
 
 3. Run the following command to install:
 
