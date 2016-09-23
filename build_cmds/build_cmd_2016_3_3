@@ -57,6 +57,18 @@ salt pi2 state.highstate pillar='{ "build_dest" : "/srv/debian/2016.3.3/pkgs" , 
 salt pi2 state.sls repo.debian.debian8  pillar='{ "build_dest" : "/srv/debian/2016.3.3/pkgs", "keyid" : "DE57BFBE" , "build_version" : "2016_3_3", "gpg_passphrase" : "fill-in here" , "build_arch" : "armhf" }'
 
 
+## Debian 7
+
+salt d7m state.sls setup.debian.debian7 pillar='{ "build_dest" : "/srv/debian/2016.3.3/pkgs" , "build_release" : "debian7" }'
+
+salt d7m state.sls pkg.salt.2016_3_3.debian7 pillar='{ "build_dest" : "/srv/debian/2016.3.3/pkgs", "build_release" : "debian7", "build_version" : "2016_3_3" }'
+
+salt d7m state.highstate pillar='{ "build_dest" : "/srv/debian/2016.3.3/pkgs", "build_release" : "debian7", "build_version" : "2016_3_3" }'
+
+salt d7m state.sls repo.debian.debian7  pillar='{ "build_dest" : "/srv/debian/2016.3.3/pkgs", "keyid" : "DE57BFBE", "build_release" : "debian7", "build_version" : "2016_3_3", "gpg_passphrase" : "fill-in here" }'
+
+
+
 ## Ubuntu 16.04
 
 salt u16m state.sls setup.ubuntu.ubuntu16 pillar='{ "build_dest" : "/srv/ubuntu/2016.3.3/pkgs" }'

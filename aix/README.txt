@@ -36,7 +36,7 @@ version, you must uninstall using an alternate method. Otherwise the previous
 package remains in the cache.
 
 The install script install_salt.sh as a number of self-explanatory options,
-which can be exmained using the -h option:
+which can be examined using the -h option:
 
     ./install_salt.sh -h
 
