@@ -59,7 +59,7 @@ salt d8m state.sls repo.debian.debian8  pillar='{ "build_dest" : "/srv/debian/20
 
 salt u16m state.sls setup.ubuntu.ubuntu16 pillar='{ "build_dest" : "/srv/ubuntu/2015.8.12/pkgs" }'
 
-salt u16m state.sls pkg.salt.2015_8_12.ubuntu1604  pillar='{ "build_dest" : "/srv/ubuntu/2015_8_12/pkgs" , "build_version" : "2015_8_12" }'
+salt u16m state.sls pkg.salt.2015_8_12.ubuntu1604  pillar='{ "build_dest" : "/srv/ubuntu/2015.8.12/pkgs" , "build_version" : "2015_8_12" }'
 
 salt u16m state.highstate pillar='{ "build_dest" : "/srv/ubuntu/2015.8.12/pkgs" , "build_version" : "2015_8_12" }'
 
@@ -71,7 +71,7 @@ salt u16m state.sls repo.ubuntu.ubuntu16  pillar='{ "build_dest" : "/srv/ubuntu/
 
 salt u14m state.sls setup.ubuntu.ubuntu14 pillar='{ "build_dest" : "/srv/ubuntu/2015.8.12/pkgs" , "build_release" : "ubuntu1404" }'
 
-salt u14m state.sls pkg.salt.2015_8_12.ubuntu1404  pillar='{ "build_dest" : "/srv/ubuntu/2015_8_12/pkgs" , "build_release" : "ubuntu1404", "build_version" : "2015_8_12" }'
+salt u14m state.sls pkg.salt.2015_8_12.ubuntu1404  pillar='{ "build_dest" : "/srv/ubuntu/2015.8.12/pkgs" , "build_release" : "ubuntu1404", "build_version" : "2015_8_12" }'
 
 salt u14m state.highstate pillar='{ "build_dest" : "/srv/ubuntu/2015.8.12/pkgs" , "build_release" : "ubuntu1404", "build_version" : "2015_8_12" }'
 
@@ -82,7 +82,7 @@ salt u14m state.sls repo.ubuntu.ubuntu14  pillar='{ "build_dest" : "/srv/ubuntu/
 
 salt u12m state.sls setup.ubuntu.ubuntu12 pillar='{ "build_dest" : "/srv/ubuntu/2015.8.12/pkgs" , "build_release" : "ubuntu1204" }'
 
-salt u12m state.sls pkg.salt.2015_8_12.ubuntu1204  pillar='{ "build_dest" : "/srv/ubuntu/2015_8_12/pkgs" , "build_release" : "ubuntu1204", "build_version" : "2015_8_12" }'
+salt u12m state.sls pkg.salt.2015_8_12.ubuntu1204  pillar='{ "build_dest" : "/srv/ubuntu/2015.8.12/pkgs" , "build_release" : "ubuntu1204", "build_version" : "2015_8_12" }'
 
 salt u12m state.highstate pillar='{ "build_dest" : "/srv/ubuntu/2015.8.12/pkgs", "build_release" : "ubuntu1204" , "build_version" : "2015_8_12" }'
 
