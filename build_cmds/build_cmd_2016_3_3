@@ -105,13 +105,13 @@ salt u12m state.sls repo.ubuntu.ubuntu12  pillar='{ "build_dest" : "/srv/ubuntu/
 
 ## Amazon 2016.09 (latest - x86_64 only)
 
-salt az1m state.sls setup.redhat.amzn pillar='{ "build_dest" : "/srv/redhat/2016.3.3/pkgs", "build_release" : "amzn", "build_version" : "2016_3_3" }'
+salt az1m state.sls setup.amazon.amzn pillar='{ "build_dest" : "/srv/amazon/2016.3.3/pkgs", "build_release" : "amzn", "build_version" : "2016_3_3" }'
 
-salt az1m state.sls pkg.salt.2016_3_3.amzn  pillar='{ "build_dest" : "/srv/redhat/2016.3.3/pkgs", "build_release" : "amzn", "build_version" : "2016_3_3" }'
+salt az1m state.sls pkg.salt.2016_3_3.amzn  pillar='{ "build_dest" : "/srv/amazon/2016.3.3/pkgs", "build_release" : "amzn", "build_version" : "2016_3_3" }'
 
-salt az1m state.highstate  pillar='{ "build_dest" : "/srv/redhat/2016.3.3/pkgs", "build_release" : "amzn", "build_version" : "2016_3_3" }'
+salt az1m state.highstate  pillar='{ "build_dest" : "/srv/amazon/2016.3.3/pkgs", "build_release" : "amzn", "build_version" : "2016_3_3" }'
 
-salt az1m state.sls repo.redhat.amzn  pillar='{ "build_dest" : "/srv/redhat/2016.3.3/pkgs", "keyid" : "DE57BFBE", "build_release" : "amzn", "build_version" : "2016_3_3" , "gpg_passphrase" : "fill-in here" }'
+salt az1m state.sls repo.amazon.amzn  pillar='{ "build_dest" : "/srv/amazon/2016.3.3/pkgs", "keyid" : "DE57BFBE", "build_release" : "amzn", "build_version" : "2016_3_3" , "gpg_passphrase" : "fill-in here" }'
 
 
 ## SSE
