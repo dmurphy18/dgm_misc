@@ -1,0 +1,148 @@
+## Redhat 7
+
+salt c7m state.sls setup.redhat.rhel7
+
+salt c7m state.sls pkg.salt.2016_3_4.rhel7  pillar='{ "build_dest" : "/srv/redhat/2016.3.4/pkgs", "build_version" : "2016_3_4" }'
+
+salt c7m state.highstate  pillar='{ "build_dest" : "/srv/redhat/2016.3.4/pkgs", "build_version" : "2016_3_4" }'
+
+salt c7m state.sls repo.redhat.rhel7  pillar='{ "build_dest" : "/srv/redhat/2016.3.4/pkgs", "keyid" : "DE57BFBE", "build_version" : "2016_3_4" , "gpg_passphrase" : "fill-in here" }'
+
+
+## Redhat 6
+
+salt c7m state.sls pkg.salt.2016_3_4.rhel6  pillar='{ "build_dest" : "/srv/redhat/2016.3.4/pkgs", "build_release" : "rhel6", "build_version" : "2016_3_4" }'
+
+salt c7m state.sls pkg.salt.2016_3_4.rhel6  pillar='{ "build_dest" : "/srv/redhat/2016.3.4/pkgs", "build_release" : "rhel6", "build_version" : "2016_3_4" , "build_arch" : "i386" }'
+
+salt c7m state.highstate  pillar='{ "build_dest" : "/srv/redhat/2016.3.4/pkgs", "build_release" : "rhel6", "build_version" : "2016_3_4" }'
+
+salt c7m state.highstate  pillar='{ "build_dest" : "/srv/redhat/2016.3.4/pkgs", "build_release" : "rhel6", "build_version" : "2016_3_4", "build_arch" : "i386" }'
+
+salt c7m state.sls repo.redhat.rhel6  pillar='{ "build_dest" : "/srv/redhat/2016.3.4/pkgs", "keyid" : "DE57BFBE", "build_release" : "rhel6", "build_version" : "2016_3_4" , "gpg_passphrase" : "fill-in here" }'
+salt c7m state.sls repo.redhat.rhel6  pillar='{ "build_dest" : "/srv/redhat/2016.3.4/pkgs", "keyid" : "DE57BFBE", "build_release" : "rhel6", "build_version" : "2016_3_4" , "gpg_passphrase" : "fill-in here", "build_arch" : "i386" }'
+
+
+## Redhat 5
+
+salt c7m state.sls pkg.salt.2016_3_4.rhel6  pillar='{ "build_dest" : "/srv/redhat/2016.3.4/pkgs", "build_release" : "rhel5", "build_version" : "2016_3_4" }'
+
+salt c7m state.sls pkg.salt.2016_3_4.rhel6  pillar='{ "build_dest" : "/srv/redhat/2016.3.4/pkgs", "build_release" : "rhel5", "build_version" : "2016_3_4" , "build_arch" : "i386" }'
+
+salt c7m state.highstate  pillar='{ "build_dest" : "/srv/redhat/2016.3.4/pkgs", "build_version" : "2016_3_4", "build_release" : "rhel5" }'
+
+salt c7m state.highstate  pillar='{ "build_dest" : "/srv/redhat/2016.3.4/pkgs", "build_version" : "2016_3_4", "build_release" : "rhel5", "build_arch" : "i386"  }'
+
+
+
+## Debian 8
+
+salt d8m state.sls setup.debian.debian8 pillar='{ "build_dest" : "/srv/debian/2016.3.4/pkgs" }'
+
+salt d8m state.sls pkg.salt.2016_3_4.debian8 pillar='{ "build_dest" : "/srv/debian/2016.3.4/pkgs", "build_version" : "2016_3_4" }'
+
+salt d8m state.highstate pillar='{ "build_dest" : "/srv/debian/2016.3.4/pkgs" , "build_version" : "2016_3_4" }'
+
+salt d8m state.sls repo.debian.debian8  pillar='{ "build_dest" : "/srv/debian/2016.3.4/pkgs", "keyid" : "DE57BFBE" , "build_version" : "2016_3_4", "gpg_passphrase" : "fill-in here" }'
+
+
+## Raspbian ( Debian 8 )
+
+salt pi2 state.sls setup.debian.debian8 pillar='{ "build_dest" : "/srv/debian/2016.3.4/pkgs", "build_arch" : "armhf" }'
+
+salt pi2 state.sls pkg.salt.2016_3_4.debian8 pillar='{ "build_dest" : "/srv/debian/2016.3.4/pkgs", "build_version" : "2016_3_4", "build_arch" : "armhf" }'
+
+salt pi2 state.highstate pillar='{ "build_dest" : "/srv/debian/2016.3.4/pkgs" , "build_version" : "2016_3_4", "build_arch" : "armhf" }'
+
+salt pi2 state.sls repo.debian.debian8  pillar='{ "build_dest" : "/srv/debian/2016.3.4/pkgs", "keyid" : "DE57BFBE" , "build_version" : "2016_3_4", "gpg_passphrase" : "fill-in here" , "build_arch" : "armhf" }'
+
+
+## Debian 7
+
+salt d7m state.sls setup.debian.debian7 pillar='{ "build_dest" : "/srv/debian/2016.3.4/pkgs" , "build_release" : "debian7" }'
+
+salt d7m state.sls pkg.salt.2016_3_4.debian7 pillar='{ "build_dest" : "/srv/debian/2016.3.4/pkgs", "build_release" : "debian7", "build_version" : "2016_3_4" }'
+
+salt d7m state.highstate pillar='{ "build_dest" : "/srv/debian/2016.3.4/pkgs", "build_release" : "debian7", "build_version" : "2016_3_4" }'
+
+salt d7m state.sls repo.debian.debian7  pillar='{ "build_dest" : "/srv/debian/2016.3.4/pkgs", "keyid" : "DE57BFBE", "build_release" : "debian7", "build_version" : "2016_3_4", "gpg_passphrase" : "fill-in here" }'
+
+
+
+## Ubuntu 16.04
+
+salt u16m state.sls setup.ubuntu.ubuntu16 pillar='{ "build_dest" : "/srv/ubuntu/2016.3.4/pkgs" }'
+
+salt u16m state.sls pkg.salt.2016_3_4.ubuntu1604  pillar='{ "build_dest" : "/srv/ubuntu/2016_3_4/pkgs" , "build_version" : "2016_3_4" }'
+
+salt u16m state.highstate pillar='{ "build_dest" : "/srv/ubuntu/2016.3.4/pkgs" , "build_version" : "2016_3_4" }'
+
+salt u16m state.sls repo.ubuntu.ubuntu16  pillar='{ "build_dest" : "/srv/ubuntu/2016.3.4/pkgs", "keyid" : "DE57BFBE" , "build_version" : "2016_3_4", "gpg_passphrase" : "fill-in here" }'
+
+
+
+## Ubuntu 14.04
+
+salt u14m state.sls setup.ubuntu.ubuntu14 pillar='{ "build_dest" : "/srv/ubuntu/2016.3.4/pkgs" , "build_release" : "ubuntu1404" }'
+
+salt u14m state.sls pkg.salt.2016_3_4.ubuntu1404  pillar='{ "build_dest" : "/srv/ubuntu/2016_3_4/pkgs" , "build_release" : "ubuntu1404", "build_version" : "2016_3_4" }'
+
+salt u14m state.highstate pillar='{ "build_dest" : "/srv/ubuntu/2016.3.4/pkgs" , "build_release" : "ubuntu1404", "build_version" : "2016_3_4" }'
+
+salt u14m state.sls repo.ubuntu.ubuntu14  pillar='{ "build_dest" : "/srv/ubuntu/2016.3.4/pkgs", "keyid" : "DE57BFBE" , "build_release" : "ubuntu1404", "build_version" : "2016_3_4", "gpg_passphrase" : "fill-in here" }'
+
+
+## Ubuntu 12.04
+
+salt u12m state.sls setup.ubuntu.ubuntu12 pillar='{ "build_dest" : "/srv/ubuntu/2016.3.4/pkgs" , "build_release" : "ubuntu1204" }'
+
+salt u12m state.sls pkg.salt.2016_3_4.ubuntu1204  pillar='{ "build_dest" : "/srv/ubuntu/2016_3_4/pkgs" , "build_release" : "ubuntu1204", "build_version" : "2016_3_4" }'
+
+salt u12m state.highstate pillar='{ "build_dest" : "/srv/ubuntu/2016.3.4/pkgs", "build_release" : "ubuntu1204" , "build_version" : "2016_3_4" }'
+
+salt u12m state.sls repo.ubuntu.ubuntu12  pillar='{ "build_dest" : "/srv/ubuntu/2016.3.4/pkgs", "build_release" : "ubuntu1204", "keyid" : "DE57BFBE" , "build_version" : "2016_3_4", "gpg_passphrase" : "fill-in here" }'
+
+
+## Amazon 2016.09 (latest - x86_64 only)
+
+salt az1m state.sls setup.amazon.amzn pillar='{ "build_dest" : "/srv/amazon/2016.3.4/pkgs", "build_release" : "amzn", "build_version" : "2016_3_4" }'
+
+salt az1m state.sls pkg.salt.2016_3_4.amzn  pillar='{ "build_dest" : "/srv/amazon/2016.3.4/pkgs", "build_release" : "amzn", "build_version" : "2016_3_4" }'
+
+salt az1m state.highstate  pillar='{ "build_dest" : "/srv/amazon/2016.3.4/pkgs", "build_release" : "amzn", "build_version" : "2016_3_4" }'
+
+salt az1m state.sls repo.amazon.amzn  pillar='{ "build_dest" : "/srv/amazon/2016.3.4/pkgs", "keyid" : "DE57BFBE", "build_release" : "amzn", "build_version" : "2016_3_4" , "gpg_passphrase" : "fill-in here" }'
+
+
+
+## SSE
+
+## SSE Redhat 7
+
+salt c7m state.sls setup.redhat.rhel7
+
+salt c7m state.sls pkg.sse.4_2_4.rhel7  pillar='{ "build_dest" : "/srv/sse_pkgs/redhat/4.2.4/pkgs" , "build_version" : "4_2_4" }'
+
+salt c7m state.sls repo.redhat.rhel7  pillar='{ "build_dest" : "/srv/sse_pkgs/redhat/4.2.4/pkgs", "keyid" : "DE57BFBE" , "build_version" : "4_2_4", "gpg_passphrase" : "fill-in here" }'
+
+
+## SSE Redhat 6
+
+salt c7m state.sls pkg.sse.4_2_4.rhel6  pillar='{ "build_dest" : "/srv/sse_pkgs/redhat/4.2.4/pkgs", "build_release" : "rhel6" , "build_version" : "4_2_4"  }'
+
+salt c7m state.sls repo.redhat.rhel6  pillar='{ "build_dest" : "/srv/sse_pkgs/redhat/4.2.4/pkgs", "keyid" : "DE57BFBE", "build_release" : "rhel6" , "build_version" : "4_2_4", "gpg_passphrase" : "fill-in here"  }'
+
+
+## SSE Redhat 5
+
+salt c7m state.sls pkg.sse.4_2_4.rhel5  pillar='{ "build_dest" : "/srv/sse_pkgs/redhat/4.2.4/pkgs", "build_release" : "rhel5" , "build_version" : "4_2_4"  }'
+
+
+## SSE Ubuntu 14.04
+
+salt u14m state.sls setup.ubuntu.ubuntu14 pillar='{ "build_dest" : "/srv/sse_pkgs/ubuntu/4.2.4/pkgs" , "build_release" : "ubuntu1404" }'
+
+salt u14m state.sls pkg.sse.4_2_4.ubuntu1404  pillar='{ "build_dest" : "/srv/sse_pkgs/ubuntu/4.2.4/pkgs" , "build_release" : "ubuntu1404", "build_version" : "4_2_4" }'
+
+salt u14m state.sls repo.ubuntu.ubuntu14  pillar='{ "build_dest" : "/srv/sse_pkgs/ubuntu/4.2.4/pkgs", "keyid" : "DE57BFBE" , "build_release" : "ubuntu1404", "build_version" : "4_2_4", "gpg_passphrase" : "fill-in here" }'
+

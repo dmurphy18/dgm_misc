@@ -34,6 +34,18 @@ salt c7m state.highstate  pillar='{ "build_dest" : "/srv/redhat/2016.11.0/pkgs",
 salt c7m state.highstate  pillar='{ "build_dest" : "/srv/redhat/2016.11.0/pkgs", "build_version" : "2016_11_0", "build_release" : "rhel5", "build_arch" : "i386"  }'
 
 
+## Amazon 2016.11 (latest - x86_64 only)
+
+salt az1m state.sls setup.amazon.amzn pillar='{ "build_dest" : "/srv/amazon/2016.11.0/pkgs", "build_release" : "amzn", "build_version" : "2016_11_0" }'
+
+salt az1m state.sls pkg.salt.2016_11_0.amzn  pillar='{ "build_dest" : "/srv/amazon/2016.11.0/pkgs", "build_release" : "amzn", "build_version" : "2016_11_0" }'
+
+salt az1m state.highstate  pillar='{ "build_dest" : "/srv/amazon/2016.11.0/pkgs", "build_release" : "amzn", "build_version" : "2016_11_0" }'
+
+salt az1m state.sls repo.amazon.amzn  pillar='{ "build_dest" : "/srv/amazon/2016.11.0/pkgs", "keyid" : "DE57BFBE", "build_release" : "amzn", "build_version" : "2016_11_0" , "gpg_passphrase" : "fill-in here" }'
+
+
+
 
 ## Debian 8
 
