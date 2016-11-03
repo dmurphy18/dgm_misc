@@ -5,7 +5,7 @@
 # Run the script with -h for usage details
 #
 
-VERSION=2016.02.19
+VERSION=2016.11.03
 
 
 ############################## HELPER FUNCTIONS ##############################
@@ -109,28 +109,28 @@ _check_for_existing_services() {
             found_initscript=1
             case "${initscript}" in
                 'salt-api')
-                    ps -e -o %a | grep 'salt-api'
+                    ps -e -o %a | grep 'salt-api' | grep -v 'grep'
                     if [  $? -eq 0 ]; then
                         _log "Found service ${initscript} active"
                         eval service_salt_api=1
                     fi
                     continue;;
                 'salt-master')
-                    ps -e -o %a | grep 'salt-master'
+                    ps -e -o %a | grep 'salt-master' | grep -v 'grep'
                     if [  $? -eq 0 ]; then
                         _log "Found service ${initscript} active"
                         eval service_salt_master=1
                     fi
                     continue;;
                 'salt-minion')
-                    ps -e -o %a | grep 'salt-minion'
+                    ps -e -o %a | grep 'salt-minion' | grep -v 'grep'
                     if [  $? -eq 0 ]; then
                         _log "Found service ${initscript} active"
                         eval service_salt_minion=1
                     fi
                     continue;;
                 'salt-syndic')
-                    ps -e -o %a | grep 'salt-syndic'
+                    ps -e -o %a | grep 'salt-syndic' | grep -v 'grep'
                     if [  $? -eq 0 ]; then
                         _log "Found service ${initscript} active"
                         eval service_salt_syndic=1
