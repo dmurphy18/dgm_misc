@@ -25,9 +25,9 @@ salt c7m state.sls repo.redhat.rhel6  pillar='{ "build_dest" : "/srv/redhat/2016
 
 ## Redhat 5
 
-salt c7m state.sls pkg.salt.2016_11_0.rhel6  pillar='{ "build_dest" : "/srv/redhat/2016.11.0/pkgs", "build_release" : "rhel5", "build_version" : "2016_11_0" }'
+salt c7m state.sls pkg.salt.2016_11_0.rhel5  pillar='{ "build_dest" : "/srv/redhat/2016.11.0/pkgs", "build_release" : "rhel5", "build_version" : "2016_11_0" }'
 
-salt c7m state.sls pkg.salt.2016_11_0.rhel6  pillar='{ "build_dest" : "/srv/redhat/2016.11.0/pkgs", "build_release" : "rhel5", "build_version" : "2016_11_0" , "build_arch" : "i386" }'
+salt c7m state.sls pkg.salt.2016_11_0.rhel5  pillar='{ "build_dest" : "/srv/redhat/2016.11.0/pkgs", "build_release" : "rhel5", "build_version" : "2016_11_0" , "build_arch" : "i386" }'
 
 salt c7m state.highstate  pillar='{ "build_dest" : "/srv/redhat/2016.11.0/pkgs", "build_version" : "2016_11_0", "build_release" : "rhel5" }'
 
