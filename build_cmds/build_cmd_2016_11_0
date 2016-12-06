@@ -47,9 +47,21 @@ salt az1m state.sls repo.amazon.amzn  pillar='{ "build_dest" : "/srv/amazon/2016
 
 
 
+## Debian 9
+
+salt td9a8 state.sls setup.debian.debian9 pillar='{ "build_dest" : "/srv/debian/2016.11.0/pkgs" }'
+
+salt td9a8 state.sls pkg.salt.2016_11_0.debian9 pillar='{ "build_dest" : "/srv/debian/2016.11.0/pkgs", "build_version" : "2016_11_0" }'
+
+salt td9a8 state.highstate pillar='{ "build_dest" : "/srv/debian/2016.11.0/pkgs" , "build_version" : "2016_11_0" }'
+
+salt td9a8 state.sls repo.debian.debian9  pillar='{ "build_dest" : "/srv/debian/2016.11.0/pkgs", "keyid" : "DE57BFBE" , "build_version" : "2016_11_0", "gpg_passphrase" : "fill-in here" }'
+
+
+
 ## Debian 8
 
-salt d8m state.sls setup.debian.debian8 pillar='{ "build_dest" : "/srv/debian/2016.11.0/pkgs" }'
+salt d8m state.sls setup.debian.debian8 pillar='{ "build_dest" : "/srv/debian/2016.11.0/pkgs" , "build_release" : "debian8" }'
 
 salt d8m state.sls pkg.salt.2016_11_0.debian8 pillar='{ "build_dest" : "/srv/debian/2016.11.0/pkgs", "build_version" : "2016_11_0" }'
 
@@ -60,7 +72,7 @@ salt d8m state.sls repo.debian.debian8  pillar='{ "build_dest" : "/srv/debian/20
 
 ## Raspbian ( Debian 8 )
 
-salt pi2 state.sls setup.debian.debian8 pillar='{ "build_dest" : "/srv/debian/2016.11.0/pkgs", "build_arch" : "armhf" }'
+salt pi2 state.sls setup.debian.debian8 pillar='{ "build_dest" : "/srv/debian/2016.11.0/pkgs" , "build_release" : "debian8" , "build_arch" : "armhf" }'
 
 salt pi2 state.sls pkg.salt.2016_11_0.debian8 pillar='{ "build_dest" : "/srv/debian/2016.11.0/pkgs", "build_version" : "2016_11_0", "build_arch" : "armhf" }'
 
